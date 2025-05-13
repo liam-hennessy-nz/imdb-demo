@@ -1,0 +1,4 @@
+.resize-active .left-panel,
+.resize-active .right-panel {
+	transition: none !important;
+}
