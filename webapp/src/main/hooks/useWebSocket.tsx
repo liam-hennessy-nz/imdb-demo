@@ -67,8 +67,7 @@ function useWebSocket(url: string): useWebSocketProps {
 				disconnect();
 			}
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [isConnected]);
 
 	return {
 		isConnected,

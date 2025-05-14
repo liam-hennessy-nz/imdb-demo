@@ -5,6 +5,7 @@ import reactX from 'eslint-plugin-react-x';
 import reactDom from 'eslint-plugin-react-dom';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import reactCompiler from 'eslint-plugin-react-compiler';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier/flat';
@@ -40,12 +41,15 @@ export default tseslint.config([
 			react,
 			'react-hooks': reactHooks,
 			'react-refresh': reactRefresh,
+			'react-compiler': reactCompiler,
 		},
 		rules: {
 			...react.configs.recommended.rules,
 			...reactHooks.configs.recommended.rules,
 			'prettier/prettier': 'error',
+			'react-compiler/react-compiler': 'error',
 			'react/react-in-jsx-scope': 'off',
+			'react-x/no-unstable-context-value': 'off',
 		},
 	},
 	prettierConfig,
