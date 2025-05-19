@@ -5,15 +5,15 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "t_consts", uniqueConstraints = {@UniqueConstraint(columnNames = "name")})
-public class TConst {
+@Table(name = "tconst_map", uniqueConstraints = {@UniqueConstraint(columnNames = "tconst")})
+public class tconstMap {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column
-	private String name;
+	private String tconst;
 
-	@OneToOne(mappedBy = "tConst")
+	@OneToOne
 	private Title title;
 }

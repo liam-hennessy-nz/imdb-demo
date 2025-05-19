@@ -1,6 +1,5 @@
 package com.example.imdbdemo.services;
 
-import com.example.imdbdemo.config.EnvConstants;
 import com.example.imdbdemo.dtos.UploadResponseDTO;
 import com.example.imdbdemo.entities.Alias;
 import com.example.imdbdemo.entities.Attribute;
@@ -25,13 +24,11 @@ import java.util.Set;
 public class UploadService {
 
 	private final TitleService titleService;
-	private final EnvConstants envConstants;
 	private final DataSource dataSource;
 	private final JdbcTemplate jdbcTemplate;
 
-	public UploadService(TitleService titleService, EnvConstants envConstants, DataSource dataSource, JdbcTemplate jdbcTemplate) {
+	public UploadService(TitleService titleService, DataSource dataSource, JdbcTemplate jdbcTemplate) {
 		this.titleService = titleService;
-		this.envConstants = envConstants;
 		this.dataSource = dataSource;
 		this.jdbcTemplate = jdbcTemplate;
 	}

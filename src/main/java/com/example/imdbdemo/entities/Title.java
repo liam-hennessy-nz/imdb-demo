@@ -14,13 +14,13 @@ public class Title {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@OneToOne
-	private TConst tConst;
+	@OneToOne(mappedBy = "title")
+	private tconstMap tconstMap;
 	@Column
 	private String titleType;
-	@Column
+	@Column(length = 512)
 	private String primaryTitle;
-	@Column
+	@Column(length = 512)
 	private String originalTitle;
 	@Column
 	private Boolean isAdult;

@@ -1,4 +1,4 @@
-package com.example.imdbdemo.entities;
+package com.example.imdbdemo.entities.imdb;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,9 +16,9 @@ public class ImdbTitleBasics {
 	private String tconst;
 	@Column
 	private String titleType;
-	@Column
+	@Column(length = 512)
 	private String primaryTitle;
-	@Column
+	@Column(length = 512)
 	private String originalTitle;
 	@Column
 	private String isAdult;

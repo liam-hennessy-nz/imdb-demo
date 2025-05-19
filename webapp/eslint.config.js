@@ -14,13 +14,7 @@ export default tseslint.config([
 	{ ignores: ['dist'] },
 	{
 		files: ['**/*.{ts,tsx}'],
-		extends: [
-			js.configs.recommended,
-			reactX.configs.recommended,
-			reactDom.configs.recommended,
-			...tseslint.configs.strictTypeChecked,
-			...tseslint.configs.stylisticTypeChecked,
-		],
+		extends: [js.configs.recommended, ...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked],
 		languageOptions: {
 			ecmaVersion: 2020,
 			globals: globals.browser,
@@ -39,15 +33,19 @@ export default tseslint.config([
 		plugins: {
 			prettier,
 			react,
-			'react-hooks': reactHooks,
 			'react-refresh': reactRefresh,
+			'react-hooks': reactHooks,
+			'react-x': reactX,
+			'react-dom': reactDom,
 			'react-compiler': reactCompiler,
 		},
 		rules: {
+			'prettier/prettier': 'warn',
 			...react.configs.recommended.rules,
 			...reactHooks.configs.recommended.rules,
-			'prettier/prettier': 'error',
-			'react-compiler/react-compiler': 'error',
+			...reactX.configs['recommended-typescript'].rules,
+			...reactDom.configs.recommended.rules,
+			...reactCompiler.configs.recommended.rules,
 			'react/react-in-jsx-scope': 'off',
 			'react-x/no-unstable-context-value': 'off',
 		},

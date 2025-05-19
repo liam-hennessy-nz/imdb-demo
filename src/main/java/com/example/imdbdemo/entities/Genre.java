@@ -7,7 +7,7 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "genres")
+@Table(name = "genres", uniqueConstraints = {@UniqueConstraint(columnNames = "name")})
 public class Genre {
 
 	@Id
