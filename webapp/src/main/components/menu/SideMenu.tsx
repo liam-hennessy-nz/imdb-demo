@@ -1,25 +1,47 @@
 import { Menu } from 'primereact/menu';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
+import type { MenuItem } from 'primereact/menuitem';
 
 function SideMenu() {
 	const navigate = useNavigate();
+	const location = useLocation();
 
-	const items = [
+	const items: MenuItem[] = [
 		{
 			label: 'Home',
-			command: () => navigate('/'),
+			command: () => {
+				void navigate({
+					pathname: '/',
+					search: location.search,
+				});
+			},
 		},
 		{
 			label: 'Titles',
-			command: () => navigate('/titles'),
+			command: () => {
+				void navigate({
+					pathname: '/titles',
+					search: location.search,
+				});
+			},
 		},
 		{
 			label: 'Documents',
-			command: () => navigate('/documents'),
+			command: () => {
+				void navigate({
+					pathname: '/documents',
+					search: location.search,
+				});
+			},
 		},
 		{
 			label: 'Other',
-			command: () => navigate('/other'),
+			command: () => {
+				void navigate({
+					pathname: '/other',
+					search: location.search,
+				});
+			},
 		},
 		{
 			label: 'Profile',

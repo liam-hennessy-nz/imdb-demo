@@ -7,8 +7,11 @@ import RightPanel from './RightPanel';
 import { Outlet } from 'react-router';
 import TopPanel from './TopPanel';
 import BannerMenu from '../menu/BannerMenu';
+import { useApp } from '../../contexts/AppContext';
 
 function PanelContainer() {
+	const app = useApp();
+
 	return (
 		<div className="panel-container flex flex-column w-screen h-screen">
 			<div className="flex flex-shrink-0 h-3rem">
@@ -24,7 +27,14 @@ function PanelContainer() {
 				</LeftPanel>
 
 				<RightPanel>
-					<div className="flex w-full p-2">
+					<div
+						className="flex w-full"
+						style={{
+							padding: '1rem',
+							paddingLeft: app.isSidebarVisible ? '1rem' : '3rem',
+							transition: 'padding-left 0.5s ease',
+						}}
+					>
 						<Outlet />
 					</div>
 				</RightPanel>

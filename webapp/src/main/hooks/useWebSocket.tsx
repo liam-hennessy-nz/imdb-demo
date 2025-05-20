@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CHUNK_SIZE } from '../constants/constants.tsx';
+import { CHUNK_SIZE } from '../constants/constants.ts';
 import { parseErrorMessage } from '../common/CommonFunctions.ts';
 import type { FileMetadata } from '../entities/FileMetadata.ts';
 

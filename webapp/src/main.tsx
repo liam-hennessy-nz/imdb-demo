@@ -8,24 +8,27 @@ import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';
 import { PrimeReactProvider } from 'primereact/api';
 import App from './App';
-import { LocalStorageProvider } from './main/contexts/LocalStorageContext';
 import { AppProvider } from './main/contexts/AppContext';
 import { SessionSocketProvider } from './main/contexts/SessionSocketContext';
+import { BrowserRouter } from 'react-router';
+import { StorageProvider } from './main/contexts/StorageContext';
 
 const rootElement = document.getElementById('root');
 
 if (rootElement) {
 	createRoot(rootElement).render(
 		<StrictMode>
-			<PrimeReactProvider>
-				<SessionSocketProvider>
-					<LocalStorageProvider>
-						<AppProvider>
-							<App />
-						</AppProvider>
-					</LocalStorageProvider>
-				</SessionSocketProvider>
-			</PrimeReactProvider>
+			<SessionSocketProvider>
+				<PrimeReactProvider>
+					<BrowserRouter>
+						<StorageProvider>
+							<AppProvider>
+								<App />
+							</AppProvider>
+						</StorageProvider>
+					</BrowserRouter>
+				</PrimeReactProvider>
+			</SessionSocketProvider>
 		</StrictMode>
 	);
 } else {

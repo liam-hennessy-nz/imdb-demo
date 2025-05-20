@@ -5,8 +5,8 @@ import {
 	type FileUploadHandlerEvent,
 	type FileUploadUploadEvent,
 } from 'primereact/fileupload';
-import useWebSocket from '../../hooks/useWebSocket';
-import { WEBSOCKET_UPLOAD_URL } from '../../constants/api';
+import useWebSocket from '../../../hooks/useWebSocket.tsx';
+import { WEBSOCKET_UPLOAD_URL } from '../../../constants/api.ts';
 import { useEffect } from 'react';
 
 interface ImportTitlesDialogProps {

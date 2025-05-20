@@ -1,6 +1,6 @@
 import { Button } from 'primereact/button';
 import { useState } from 'react';
-import ImportTitlesDialog from './ImportTitlesDialog';
+import ImportTitlesDialog from './ImportTitlesDialog.tsx';
 
 function TitlesPage() {
 	const [showImportDialog, setShowImportDialog] = useState<boolean>(false);
