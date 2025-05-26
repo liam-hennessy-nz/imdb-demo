@@ -10,8 +10,8 @@ import java.util.Set;
 @Entity
 @Table(name = "titles")
 public class Title {
-
 	@Id
+	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@OneToOne(mappedBy = "title")

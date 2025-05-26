@@ -9,8 +9,8 @@ import java.util.Set;
 @Entity
 @Table(name = "genres", uniqueConstraints = {@UniqueConstraint(columnNames = "name")})
 public class Genre {
-
 	@Id
+	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column

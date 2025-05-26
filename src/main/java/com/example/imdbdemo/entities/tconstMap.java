@@ -5,10 +5,10 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "tconst_map", uniqueConstraints = {@UniqueConstraint(columnNames = "tconst")})
+@Table(name = "tconst_maps", uniqueConstraints = {@UniqueConstraint(columnNames = "tconst")})
 public class tconstMap {
-
 	@Id
+	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column

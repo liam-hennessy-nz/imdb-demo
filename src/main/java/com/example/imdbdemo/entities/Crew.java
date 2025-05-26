@@ -9,8 +9,8 @@ import java.util.Set;
 @Entity
 @Table(name = "crews")
 public class Crew {
-
 	@Id
+	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToMany(mappedBy = "crews")

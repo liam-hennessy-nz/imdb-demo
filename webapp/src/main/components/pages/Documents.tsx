@@ -1,4 +1,4 @@
-import { useStorage } from '../../contexts/StorageContext';
+import { useStorage } from '../contexts/StorageContext';
 import { Button } from 'primereact/button';
 
 function Documents() {

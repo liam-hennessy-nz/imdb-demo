@@ -1,25 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.4.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
+
 	<groupId>com.example</groupId>
 	<artifactId>imdb-demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>imdb-demo</name>
 	<description>imdb-demo</description>
 	<url/>
+
 	<licenses>
-		<license/>
+		<license>
+			<name>GNU General Public License, Version 3</name>
+			<url>https://www.gnu.org/licenses/gpl-3.0.html</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
+
 	<developers>
-		<developer/>
+		<developer>
+			<id>liam-hennessy-nz</id>
+			<name>Liam Hennessy</name>
+		</developer>
 	</developers>
+
 	<scm>
 		<connection/>
 		<developerConnection/>
@@ -34,6 +47,7 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<modelmapper.version>3.2.3</modelmapper.version>
 		<postgresql.version>42.7.5</postgresql.version>
+		<openfeign-querydsl.version>6.11</openfeign-querydsl.version>
 	</properties>
 
 	<dependencies>
@@ -116,6 +130,19 @@
 			<artifactId>postgresql</artifactId>
 			<version>${postgresql.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.github.openfeign.querydsl/querydsl-jpa -->
+		<dependency>
+			<groupId>io.github.openfeign.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<version>${openfeign-querydsl.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.github.openfeign.querydsl/querydsl-apt -->
+		<dependency>
+			<groupId>io.github.openfeign.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<version>${openfeign-querydsl.version}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -123,6 +150,25 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+						<path>
+							<groupId>io.github.openfeign.querydsl</groupId>
+							<artifactId>querydsl-apt</artifactId>
+							<version>${openfeign-querydsl.version}</version>
+							<classifier>jakarta</classifier>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

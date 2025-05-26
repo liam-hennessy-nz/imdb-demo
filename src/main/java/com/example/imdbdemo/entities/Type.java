@@ -9,14 +9,12 @@ import java.util.Set;
 @Entity
 @Table(name = "types")
 public class Type {
-
 	@Id
+	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
 	@Column
 	private String name;
-
 
 	@ManyToMany
 	private Set<Alias> aliases;

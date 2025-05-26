@@ -2,15 +2,16 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:latest
-    restart: always
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-    ports:
-      - ${IMDB_DEMO_DB_PORT}:${IMDB_DEMO_DB_PORT}
+    container_name: postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${IMDB_DEMO_DB_USER}
       POSTGRES_PASSWORD: ${IMDB_DEMO_DB_PASS}
       POSTGRES_DB: ${IMDB_DEMO_DB_NAME}
+    ports:
+      - ${IMDB_DEMO_DB_PORT}:${IMDB_DEMO_DB_PORT}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
   postgres-data:

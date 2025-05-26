@@ -17,6 +17,15 @@ function SideMenu() {
 			},
 		},
 		{
+			label: 'Names',
+			command: () => {
+				void navigate({
+					pathname: '/names',
+					search: location.search,
+				});
+			},
+		},
+		{
 			label: 'Titles',
 			command: () => {
 				void navigate({

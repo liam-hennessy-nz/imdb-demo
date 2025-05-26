@@ -1,17 +1,16 @@
 package com.example.imdbdemo.entities.imdb;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "imdb_title_episode")
+@Table(name = "imdb_title_episodes")
 public class ImdbTitleEpisode {
-
 	@Id
+	@Column
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 	@Column
 	private String tconst;
 	@Column

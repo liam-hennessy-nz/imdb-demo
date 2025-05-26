@@ -9,8 +9,8 @@ import java.util.Set;
 @Entity
 @Table(name = "principals")
 public class Principal {
-
 	@Id
+	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column

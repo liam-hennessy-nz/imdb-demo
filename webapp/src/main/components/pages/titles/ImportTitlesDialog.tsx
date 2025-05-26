@@ -5,8 +5,8 @@ import {
 	type FileUploadHandlerEvent,
 	type FileUploadUploadEvent,
 } from 'primereact/fileupload';
-import useWebSocket from '../../../hooks/useWebSocket.tsx';
-import { WEBSOCKET_UPLOAD_URL } from '../../../constants/api.ts';
+import useWebSocket from '../../../hooks/useWebSocket.ts';
+import { API } from '../../../constants/api.ts';
 import { useEffect } from 'react';
 
 interface ImportTitlesDialogProps {
@@ -15,7 +15,7 @@ interface ImportTitlesDialogProps {
 }
 
 function ImportTitlesDialog({ visible, onHide }: ImportTitlesDialogProps) {
-	const uploadSocket = useWebSocket(WEBSOCKET_UPLOAD_URL);
+	const uploadSocket = useWebSocket(API.WEBSOCKET_UPLOAD_URL);
 
 	const uploadHandler = async (e: FileUploadHandlerEvent) => {
 		// Attempt to start web socket connection

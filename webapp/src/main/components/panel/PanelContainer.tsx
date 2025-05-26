@@ -7,7 +7,7 @@ import RightPanel from './RightPanel';
 import { Outlet } from 'react-router';
 import TopPanel from './TopPanel';
 import BannerMenu from '../menu/BannerMenu';
-import { useApp } from '../../contexts/AppContext';
+import { useApp } from '../contexts/AppContext';
 
 function PanelContainer() {
 	const app = useApp();

@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useApp } from '../contexts/AppContext';
 
 function LeftPanel({ children }: PropsWithChildren) {
 	const { isSidebarVisible } = useApp();
