@@ -5,11 +5,10 @@ import type { SessionSocketContextType } from './types.ts';
 import { SessionSocketContext } from './SessionSocketContext.ts';
 
 export function SessionSocketProvider({ children }: PropsWithChildren) {
-	const sessionSocket = useWebSocket(API.WEBSOCKET_SESSION_URL);
+	const sessionSocket = useWebSocket({ url: API.WEBSOCKET_SESSION_URL });
 
 	const value: SessionSocketContextType = {
 		isConnected: sessionSocket.isConnected,
-		send: sessionSocket.send,
 	};
 
 	return <SessionSocketContext value={value}>{children}</SessionSocketContext>;

@@ -4,7 +4,7 @@
  * @return If the object is an Error: the Error message. Else: 'Unknown error'.
  */
 export function parseErrorMessage(e: unknown) {
-	if (e instanceof Error) {
+	if (e instanceof Error && e.message) {
 		return e.message;
 	} else {
 		return 'Unknown error';
@@ -22,4 +22,12 @@ export function parseError(e: unknown) {
 	} else {
 		return new Error('Unknown error');
 	}
+}
+
+/**
+ * Function awaits for the specified time.
+ * @param ms Time to wait in milliseconds.
+ */
+export async function sleep(ms: number) {
+	await new Promise((resolve) => setTimeout(resolve, ms));
 }

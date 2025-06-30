@@ -45,9 +45,9 @@
 		<lombok.version>1.18.38</lombok.version>
 		<lang3.version>3.17.0</lang3.version>
 		<slf4j.version>2.0.17</slf4j.version>
-		<modelmapper.version>3.2.3</modelmapper.version>
-		<postgresql.version>42.7.5</postgresql.version>
-		<openfeign-querydsl.version>6.11</openfeign-querydsl.version>
+		<modelmapper.version>3.2.4</modelmapper.version>
+		<postgresql.version>42.7.7</postgresql.version>
+		<openfeign-querydsl.version>7.0</openfeign-querydsl.version>
 	</properties>
 
 	<dependencies>

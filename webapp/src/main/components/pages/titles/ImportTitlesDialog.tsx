@@ -1,13 +1,14 @@
-import { Dialog } from 'primereact/dialog';
+import useWebSocket from '../../../hooks/useWebSocket.ts';
+import { API } from '../../../constants/api.ts';
 import {
 	FileUpload,
 	type FileUploadErrorEvent,
 	type FileUploadHandlerEvent,
 	type FileUploadUploadEvent,
 } from 'primereact/fileupload';
-import useWebSocket from '../../../hooks/useWebSocket.ts';
-import { API } from '../../../constants/api.ts';
+import { parseErrorMessage } from '../../../common/CommonFunctions.ts';
 import { useEffect } from 'react';
+import { Dialog } from 'primereact/dialog';
 
 interface ImportTitlesDialogProps {
 	visible: boolean;
@@ -15,21 +16,21 @@ interface ImportTitlesDialogProps {
 }
 
 function ImportTitlesDialog({ visible, onHide }: ImportTitlesDialogProps) {
-	const uploadSocket = useWebSocket(API.WEBSOCKET_UPLOAD_URL);
+	const uploadSocket = useWebSocket({ url: API.WEBSOCKET_UPLOAD_URL });
 
 	const uploadHandler = async (e: FileUploadHandlerEvent) => {
 		// Attempt to start web socket connection
 		try {
 			const file = e.files[0];
-			// If WebSocket not already connected
-			if (!uploadSocket.isConnected) {
-				// Establish a new WebSocket connection
-				await uploadSocket.connect();
-			}
 			// Send the file
-			await uploadSocket.streamFileInChunks(file);
-		} catch (error) {
-			console.debug(error);
+			try {
+				await uploadSocket.sendFile(file);
+			} catch (e) {
+				console.error(`Failed to send file: ${parseErrorMessage(e)}`);
+				uploadSocket.disconnect();
+			}
+		} catch (e) {
+			console.error(parseErrorMessage(e));
 		}
 	};
 

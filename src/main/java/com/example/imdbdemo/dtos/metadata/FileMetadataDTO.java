@@ -1,9 +1,9 @@
-package com.example.imdbdemo.dtos;
+package com.example.imdbdemo.dtos.metadata;
 
 import lombok.Data;
 
 @Data
-public class FileMetadata {
+public class FileMetadataDTO {
 	private String type;
 	private String fileName;
 	private long size;

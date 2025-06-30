@@ -1,10 +1,10 @@
-import NamesTable from './NamesTable.tsx';
 import { useEffect, useState } from 'react';
-import type { ImdbNameBasic } from '../../../entities/imdb/ImdbNameBasic.ts';
-import { filterImdbNameBasics } from '../../../services/imdb/ImdbNameBasicService.ts';
 import type { PageResponse } from '../../../entities/PageResponse.ts';
-import { parseError } from '../../../common/CommonFunctions.ts';
+import type { ImdbNameBasic } from '../../../entities/imdb/ImdbNameBasic.ts';
 import type { FilterRequest } from '../../../entities/FilterRequest.ts';
+import { filterImdbNameBasics } from '../../../services/imdb/ImdbNameBasicService.ts';
+import { parseErrorMessage } from '../../../common/CommonFunctions.ts';
+import NamesTable from './NamesTable.tsx';
 
 function NamesMain() {
 	const [names, setNames] = useState<PageResponse<ImdbNameBasic> | null>(null);
@@ -24,7 +24,7 @@ function NamesMain() {
 			setNames(await filterImdbNameBasics(request));
 		} catch (e) {
 			setNames(null);
-			console.debug(parseError(e));
+			console.debug(parseErrorMessage(e));
 		} finally {
 			setLoading(false);
 		}
