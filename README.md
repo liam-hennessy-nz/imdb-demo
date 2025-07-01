@@ -1,28 +1,61 @@
 # imdb-demo
 
-A full stack IMDB browser demo. Vite+React frontend. Spring Boot backend. PostgreSQL database.
+A full stack IMDb browser demo. Vite+React frontend. Spring Boot backend. PostgreSQL database. This app is just an
+experiment. I had worked on something similar at university in C#. With some newfound React/Java knowledge, I have
+decided to put together something far more advanced which I can work on to hone my skills. As a result, there will be
+some inefficiencies, or areas which have overkill functionality. For the most part though, the main branch should be
+stable.
+
+# What's Inside
+
+- WebSocket uploads of large BLOBs piped into PostgreSQL CopyManager
+- Docker Compose housing a PostgreSQL instance
+- JPA + QueryDSL
+- React Compiler
+- PrimeReact
 
 # Prerequisites
 
-There are some environment variables which must be made available to the backend. They are required by Docker Compose
-as well as the Spring Boot application. These are:
+Out of the box, this application requires Docker to spin up a PostgreSQL database. Ensure the Docker Engine is running
+in the same environment as the backend. The backend is also built to run in the Java 21 environment. Depending on how
+the app is deployed (inside WSL for instance), `IMDB_DEMO_HOST` may need to be set to `0.0.0.0` so that outside machines
+can connect to the backend.
 
-- `IMDB_DEMO_DB_HOST` ~ the hostname which the database will use (typically `db`)
-- `IMDB_DEMO_DB_PORT` ~ the port which the database will use (typically `5432`)
-- `IMDB_DEMO_DB_NAME` ~ the name you want for the database
-- `IMDB_DEMO_DB_USER` ~ the username you want for the database
-- `IMDB_DEMO_DB_PASS` ~ the password you want for the database
+# Environment Variables
 
-These can also be overridden by the `application.properties` file using the respective properties:
+There are a number of backend and frontend environment variables available, all of which have working default values. If
+one needs to be overridden, the recommended way is to introduce a process or system level environment variable with the
+same name. This will override the default value. The environment variables are:
 
-- `imdb-demo.db.host`
-- `imdb-demo.db.port`
-- `imdb-demo.db.name`
-- `imdb-demo.db.user`
-- `imdb-demo.db.pass`
+**Backend**
 
-*NOTE*: It is recommended to change these properties in the environment variables. If you need to override in the
-`application.properties` file, ensure to update the `compose.yml` file as well.
+| Variable             | Default                        | Description                                  |
+|----------------------|--------------------------------|----------------------------------------------|
+| `IMDB_DEMO_HOST`     | `localhost`                    | The hostname which the backend will bind to  |
+| `IMDB_DEMO_PORT`     | `8443`                         | The port which the backend will bind to      |
+| `IMDB_DEMO_USE_TLS`  | `false`                        | Whether the backend will use TLS             |
+| `IMDB_DEMO_DB_HOST`  | `localhost`                    | The hostname which the database will bind to |
+| `IMDB_DEMO_DB_PORT`  | `5432`                         | The port which the database will bind to     |
+| `IMDB_DEMO_DB_NAME`  | `dev_imdb_demo`                | The name the database will have              |
+| `IMDB_DEMO_DB_USER`  | `postgres`                     | The username the database user will use      |
+| `IMDB_DEMO_DB_PASS`  | `password`                     | The password the database user will use      |
+| `IMDB_DEMO_KS_TYPE`  | `PKCS12`                       | The type of the ssl keystore                 |
+| `IMDB_DEMO_KS_PATH`  | `classpath:certs/keystore.p12` | The relative path to the ssl keystore        |
+| `IMDB_DEMO_KS_ALIAS` | `imdb-demo-cert`               | The alias of the ssl keystore                |
+| `IMDB_DEMO_KS_PASS`  | `changeit`                     | The password to the ssl keystore             |
 
-These must also point to a valid PostgreSQL database. This project uses Docker Compose to generate and run a PostgreSQL
-database on backend startup. For this to work, the Docker Engine must be running is the same environment as the backend.
+**Frontend**
+
+| Variable        | Default     | Description                                  |
+|-----------------|-------------|----------------------------------------------|
+| `VITE_HOST`     | `localhost` | The hostname which the frontend will bind to |
+| `VITE_PORT`     | `5173`      | The port which the frontend will bind to     |
+| `VITE_USE_TLS`  | `false`     | Whether the frontend will use TLS            |
+| `VITE_API_HOST` | `localhost` | The hostname which the backend is using      |
+| `VITE_API_PORT` | `8443`      | The port which the backend is using          |
+| `VITE_KS_PATH`  | `certs`     | The relative path to the ssl key/cert        |
+
+# TLS
+
+If TLS is needed, `IMDB_DEMO_USE_TLS` and `VITE_USE_TLS` can be set to `true`. Just ensure you have valid keys/certs
+in the correct locations, specified by `IMDB_DEMO_KS_PATH` and `VITE_KS_PATH`, respectively.

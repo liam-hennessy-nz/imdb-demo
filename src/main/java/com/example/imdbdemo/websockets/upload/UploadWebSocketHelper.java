@@ -85,16 +85,16 @@ public class UploadWebSocketHelper {
 	 * @param status  The status to close the session with.
 	 */
 	public void closeConnection(WebSocketSession session, CloseStatus status) {
-		try {
-			session.close(status);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to close WebSocket connection", e);
-		}
-
 		String msg = "WebSocket [%s] - Closing connection%s".formatted(
 			session.getId(),
 			status.getReason() == null ? "" : ": %s".formatted(status.getReason())
 		);
 		log.info(msg);
+
+		try {
+			session.close(status);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to close WebSocket connection", e);
+		}
 	}
 }

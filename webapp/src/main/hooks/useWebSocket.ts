@@ -132,7 +132,7 @@ function useWebSocket(props: useWebSocketProps): WebSocketState {
 		// Process files in chunks
 		for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
 			console.debug(
-				`${generateLogPrefix()} - Streaming chunk [${chunkIndex.toString()} / ${totalChunks.toString()}]...`
+				`${generateLogPrefix()} - Streaming chunk [${(chunkIndex + 1).toString()} / ${totalChunks.toString()}]...`
 			);
 
 			// Calculate start and end of this chunk

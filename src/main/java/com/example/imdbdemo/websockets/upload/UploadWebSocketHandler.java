@@ -95,12 +95,14 @@ public class UploadWebSocketHandler extends AbstractWebSocketHandler {
 			OutputStream outputStream = outputStreams.remove(session);
 			try {
 				outputStream.flush();
+				outputStream.close();
 			} catch (IOException e) {
 				// Log and close connection if exception is caught
-				log.error("WebSocket [{}] - Failed to flush output stream", session.getId(), e);
+				log.error("WebSocket [{}] - Failed to flush and close output stream", session.getId(), e);
 				uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
 				return;
 			}
+			log.info("WebSocket [{}] - COPY completed successfully", session.getId());
 			uploadWebSocketHelper.closeConnection(session, CloseStatus.NORMAL);
 			return;
 		}
