@@ -17,5 +17,6 @@ public class Genre {
 	private String name;
 
 	@ManyToMany
+	@JoinTable(name = "genre_titles")
 	private Set<Title> titles;
 }

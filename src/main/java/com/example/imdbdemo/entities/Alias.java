@@ -22,8 +22,6 @@ public class Alias {
 	@Column
 	private String language;
 	@ManyToMany(mappedBy = "aliases")
-	private Set<Type> types;
-	@ManyToMany(mappedBy = "aliases")
 	private Set<Attribute> attributes;
 	@Column
 	private Boolean isOriginalTitle;

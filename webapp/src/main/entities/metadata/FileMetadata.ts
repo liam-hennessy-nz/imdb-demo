@@ -3,4 +3,6 @@ export interface FileMetadata {
 	fileName: string;
 	size: number;
 	lastModified: number;
+	ackInterval: number;
+	totalChunks: number;
 }

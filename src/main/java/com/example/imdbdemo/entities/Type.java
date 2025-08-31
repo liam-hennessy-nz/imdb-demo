@@ -17,5 +17,6 @@ public class Type {
 	private String name;
 
 	@ManyToMany
-	private Set<Alias> aliases;
+	@JoinTable(name = "type_titles")
+	private Set<Title> titles;
 }

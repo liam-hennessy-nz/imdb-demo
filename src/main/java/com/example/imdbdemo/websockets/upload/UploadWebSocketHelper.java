@@ -9,8 +9,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.Connection;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -21,6 +24,22 @@ public class UploadWebSocketHelper {
 
 	public UploadWebSocketHelper(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	public void handleEof(WebSocketSession session, Map<WebSocketSession, OutputStream> outputStreams) {
+		log.info("WebSocket [{}] - EOF received, completing COPY", session.getId());
+		OutputStream outputStream = outputStreams.remove(session);
+		try {
+			outputStream.flush();
+			outputStream.close();
+		} catch (IOException e) {
+			// Log and close connection if exception is caught
+			log.error("WebSocket [{}] - Failed to flush and close output stream", session.getId(), e);
+			closeConnection(session, CloseStatus.SERVER_ERROR);
+			return;
+		}
+		log.info("WebSocket [{}] - COPY completed successfully", session.getId());
+		closeConnection(session, CloseStatus.NORMAL);
 	}
 
 	/**
@@ -41,8 +60,8 @@ public class UploadWebSocketHelper {
 				"imdb_title_akas (tconst, ordering, title, region, language, types, attributes, is_original_title)";
 			case "title.basics.tsv" ->
 				"imdb_title_basics (tconst, title_type, primary_title, original_title, is_adult, start_year, end_year, runtime_minutes, genres)";
-			case "title.crew.tsv" -> "imdb_title_crew (tconst, directors, writers)";
-			case "title.episode.tsv" -> "imdb_title_episode (tconst, parent_tconst, season_number, episode_number)";
+			case "title.crew.tsv" -> "imdb_title_crews (tconst, directors, writers)";
+			case "title.episode.tsv" -> "imdb_title_episodes (tconst, parent_tconst, season_number, episode_number)";
 			case "title.principals.tsv" -> "imdb_title_principals (tconst, ordering, nconst, category, job, characters)";
 			case "title.ratings.tsv" -> "imdb_title_ratings (tconst, average_rating, num_votes)";
 			default -> null;

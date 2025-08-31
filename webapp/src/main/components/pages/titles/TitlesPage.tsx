@@ -1,22 +1,25 @@
 import { Button } from 'primereact/button';
-import { useState } from 'react';
+import { useSessionSocket } from '../../contexts/SessionSocketContext';
 import ImportTitlesDialog from './ImportTitlesDialog.tsx';
+import { useState } from 'react';
 
 function TitlesPage() {
-	const [showImportDialog, setShowImportDialog] = useState<boolean>(false);
+	const sessionSocket = useSessionSocket();
+	const [isImportDialogVisible, setIsImportDialogVisible] = useState<boolean>(false);
 
 	return (
 		<div>
 			<Button
 				label="Import Titles..."
 				onClick={() => {
-					setShowImportDialog(true);
+					sessionSocket.setIsUploadProgressVisible(true);
+					setIsImportDialogVisible(true);
 				}}
 			/>
 			<ImportTitlesDialog
-				visible={showImportDialog}
+				visible={isImportDialogVisible}
 				onHide={() => {
-					setShowImportDialog(false);
+					setIsImportDialogVisible(false);
 				}}
 			/>
 		</div>

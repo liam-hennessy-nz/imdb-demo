@@ -1,17 +1,27 @@
+function getChunkSizeFromEnv() {
+	const chunkSize = import.meta.env.VITE_WS_CHUNK_SIZE as unknown as string;
+	const chunkSizeInt = parseInt(chunkSize, 10);
+	if (isNaN(chunkSizeInt) || !isFinite(chunkSizeInt) || chunkSizeInt <= 0) {
+		throw new Error(`Invalid chunk_size specified in .env: ${chunkSize}`);
+	}
+	return chunkSizeInt;
+}
+
 export const WEBSOCKET = {
 	CONNECT: {
-		RETRY_LIMIT: 3,
-		RETRY_TIMEOUT_MS: 500,
+		MAX_ATTEMPTS: 10,
+		TIMEOUT_MS: 5000,
 	},
 	SEND: {
-		RETRY_LIMIT: 3,
-		RETRY_TIMEOUT_MS: 500,
+		MAX_ATTEMPTS: 10,
+		TIMEOUT_MS: 500,
 	},
 	CHUNK: {
-		RETRY_LIMIT: 3,
-		RETRY_TIMEOUT_MS: 500,
-		SIZE: 1024 * 1024,
-		IN_FLIGHT_LIMIT: 5,
+		MAX_ATTEMPTS: 10,
+		TIMEOUT_MS: 2000,
+		SIZE: getChunkSizeFromEnv(),
+		MAX_IN_FLIGHT: 300, // Maximum allowed unACKed chunks
+		ACK_INTERVAL: 50, // Only check for an ACK every x chunks
 	},
 };
 

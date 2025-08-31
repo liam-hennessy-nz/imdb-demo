@@ -1,22 +1,24 @@
-import { DATE_FORMAT, WEBSOCKET } from '../constants/constants.ts';
-import { useEffect, useRef, useState } from 'react';
-import type { PromiseHandlers } from '../common/CommonTypes.ts';
-import dayjs from 'dayjs';
+import { WEBSOCKET } from '../constants/constants.ts';
+import { useEffect, useRef } from 'react';
 import type { FileMetadata } from '../entities/metadata/FileMetadata.ts';
-import { parseErrorMessage, sleep } from '../common/CommonFunctions.ts';
+import { parseError, parseErrorMessage, sleep } from '../common/CommonFunctions.ts';
 import type { ChunkMetadata } from '../entities/metadata/ChunkMetadata.ts';
 
 export interface useWebSocketProps {
 	url: string;
-	connectRetryLimit?: number;
-	connectRetryTimeoutMs?: number;
-	connectRetryOnClose?: boolean;
-	sendRetryLimit?: number;
-	sendRetryTimeoutMs?: number;
-	chunkRetryLimit?: number;
+	connectMaxAttempts?: number;
+	connectTimeoutMs?: number;
+	doRetryOnConnectFail?: boolean;
+	sendMaxAttempts?: number;
+	sendTimeoutMs?: number;
+	doRetryOnSendFail?: boolean;
+	chunkMaxAttempts?: number;
 	chunkTimeoutMs?: number;
+	doRetryOnChunkFail?: boolean;
 	chunkSize?: number;
-	chunkInFlightLimit?: number;
+	chunkMaxInFlight?: number;
+	chunkAckInterval?: number;
+	onProgress?: (progress: number) => void;
 	onOpen?: (ws: WebSocket, ev: Event) => void;
 	onMessage?: (ws: WebSocket, ev: MessageEvent) => void;
 	onError?: (ws: WebSocket, ev: Event) => void;
@@ -25,7 +27,6 @@ export interface useWebSocketProps {
 
 export interface WebSocketState {
 	ws: WebSocket | null;
-	isConnected: boolean;
 	connect: () => Promise<void>;
 	disconnect: () => void;
 	send: (data: string | ArrayBufferLike) => Promise<void>;
@@ -47,93 +48,66 @@ export interface ChunkState {
 function useWebSocket(props: useWebSocketProps): WebSocketState {
 	const {
 		url,
-		connectRetryLimit = WEBSOCKET.CONNECT.RETRY_LIMIT,
-		connectRetryTimeoutMs = WEBSOCKET.CONNECT.RETRY_TIMEOUT_MS,
-		connectRetryOnClose = true,
-		sendRetryLimit = WEBSOCKET.SEND.RETRY_LIMIT,
-		sendRetryTimeoutMs = WEBSOCKET.SEND.RETRY_TIMEOUT_MS,
-		chunkRetryLimit = WEBSOCKET.CHUNK.RETRY_LIMIT,
-		chunkTimeoutMs = WEBSOCKET.CHUNK.RETRY_TIMEOUT_MS,
+		connectMaxAttempts = WEBSOCKET.CONNECT.MAX_ATTEMPTS,
+		connectTimeoutMs = WEBSOCKET.CONNECT.TIMEOUT_MS,
+		doRetryOnConnectFail = true,
+		sendMaxAttempts = WEBSOCKET.SEND.MAX_ATTEMPTS,
+		sendTimeoutMs = WEBSOCKET.SEND.TIMEOUT_MS,
+		doRetryOnSendFail = true,
+		chunkMaxAttempts = WEBSOCKET.CHUNK.MAX_ATTEMPTS,
+		chunkTimeoutMs = WEBSOCKET.CHUNK.TIMEOUT_MS,
+		doRetryOnChunkFail = true,
 		chunkSize = WEBSOCKET.CHUNK.SIZE,
-		chunkInFlightLimit = WEBSOCKET.CHUNK.IN_FLIGHT_LIMIT,
+		chunkMaxInFlight = WEBSOCKET.CHUNK.MAX_IN_FLIGHT,
+		chunkAckInterval = WEBSOCKET.CHUNK.ACK_INTERVAL,
+		onProgress,
 		onOpen,
 		onMessage,
 		onError,
 		onClose,
 	} = props;
 
-	const [isConnected, setIsConnected] = useState<boolean>(false);
 	const wsRef = useRef<WebSocket | null>(null);
-	const manuallyClosedRef = useRef<boolean>(false);
-	const connectPromiseRef = useRef<PromiseHandlers | null>(null);
-	const connectRetryCountRef = useRef<number>(0);
+	const isConnectedRef = useRef<boolean>(false);
+	const totalChunksRef = useRef<number>(0);
 	const chunkAcksRef = useRef<Record<number, ChunkState>>({});
-
-	/**
-	 * Helper function that generates a console log prefix containing the current time and WebSocket URL.
-	 */
-	function generateLogPrefix() {
-		return `[${dayjs().format(DATE_FORMAT.LOG)}] WebSocket [${url}]`;
-	}
-
-	/**
-	 * Function that calls {@link attemptConnect} and returns a resolved promise if the WebSocket connection to backend is
-	 * successful, else a rejected promise is returned instead.
-	 */
-	function connect(): Promise<void> {
-		if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-			return Promise.resolve();
-		}
-
-		return new Promise((resolve, reject) => {
-			connectRetryCountRef.current = 0;
-			manuallyClosedRef.current = false;
-			connectPromiseRef.current ??= { resolve, reject };
-			attemptConnect();
-		});
-	}
-
-	/**
-	 * Function that establishes a WebSocket connection with the backend. It also initialises listeners for onopen,
-	 * onmessage, onerror and onclose.
-	 */
-	function attemptConnect() {
-		const ws = new WebSocket(url);
-		wsRef.current = ws;
-
-		ws.onopen = handleOpen;
-		ws.onmessage = handleMessage;
-		ws.onerror = handleError;
-		ws.onclose = handleClose;
-	}
 
 	/**
 	 * Function that sends a file via an established WebSocket to the backend. It breaks a provided file up into
 	 * ArrayBuffer chunks of size {@link chunkSize}. Each chunk has a big-endian chunk index appended to it before being
-	 * sent via {@link sendChunkWithAck} so that processed chunks are kept track of. Once all chunks are sent, an EOF
+	 * sent via {@link sendChunk} so that processed chunks are kept track of. Once all chunks are sent, an EOF
 	 * message is sent which signals the backend to flush the data and close the connection.
 	 * @param file The file to send through to backend.
 	 */
 	async function sendFile(file: File) {
+		// Calculate total chunks needed for file
+		const totalChunks = Math.ceil(file.size / chunkSize);
+		totalChunksRef.current = totalChunks;
+
 		// Create file metadata
 		const metadata: FileMetadata = {
 			type: 'HEAD',
 			fileName: file.name,
 			size: file.size,
 			lastModified: file.lastModified,
+			ackInterval: chunkAckInterval,
+			totalChunks: totalChunks,
 		};
 
 		// Send metadata first to initialise stream with backend
-		await send(JSON.stringify(metadata));
+		try {
+			await send(JSON.stringify(metadata));
+		} catch (ex) {
+			throw parseError(ex);
+		}
 
-		// Calculate total chunks needed for file
-		const totalChunks = Math.ceil(file.size / chunkSize);
-
+		// TODO: might be better to retrieve chunkSize from backend
 		// Process files in chunks
 		for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-			console.debug(
-				`${generateLogPrefix()} - Streaming chunk [${(chunkIndex + 1).toString()} / ${totalChunks.toString()}]...`
-			);
+			if (wsRef.current?.readyState !== WebSocket.OPEN) {
+				throw new Error('WebSocket connection was closed while streaming file');
+			}
+			console.debug(`Streaming chunk [${chunkIndex.toString()} / ${(totalChunks - 1).toString()}]...`);
 
 			// Calculate start and end of this chunk
 			const start = chunkIndex * chunkSize;
@@ -153,136 +127,273 @@ function useWebSocket(props: useWebSocketProps): WebSocketState {
 			combined.set(new Uint8Array(chunk), 4);
 
 			// Send the chunk
-			await sendChunkWithAck(combined.buffer, chunkIndex);
+			try {
+				await sendChunk(combined.buffer, chunkIndex);
+			} catch (ex) {
+				throw parseError(ex);
+			}
 		}
 
 		// Send EOF to finish stream with backend
-		await send('EOF');
+		try {
+			await send('EOF');
+		} catch (ex) {
+			throw parseError(ex);
+		}
 
 		// Check if all chunks were acknowledged
 		const unackedCount = getUnackedChunkCount(chunkAcksRef.current);
 		if (unackedCount > 0) {
-			console.error(`${generateLogPrefix()} - Upload completed with ${unackedCount.toString()} chunks unacknowledged`);
+			console.error(`Upload completed with ${unackedCount.toString()} chunks unacknowledged`);
 		} else {
-			console.debug(`${generateLogPrefix()} - Upload completed with all chunks acknowledged`);
+			console.debug(`Upload completed with all chunks acknowledged`);
 		}
 	}
 
 	/**
 	 * Function which sends an ArrayBuffer chunk via an established WebSocket to the backend. For added robustness, each
 	 * chunk requires an ACK before the next one is sent. It sends the chunk via {@link send}, which causes this function
-	 * to terminate if a rejected promise is returned. If no ACK is received after {@link chunkRetryLimit} attempts, the
-	 * function is terminated. There is also a limit on in-flight chunks specified by {@link chunkInFlightLimit}. If the
-	 * queue does not reduce after {@link chunkRetryLimit} attempts, the function is terminated.
+	 * to terminate if a rejected promise is returned. If no ACK is received after {@link chunkMaxAttempts} attempts, the
+	 * function terminates. There is also a limit on in-flight chunks specified by {@link chunkMaxInFlight}. If the
+	 * queue does not reduce after {@link chunkMaxAttempts} attempts, the function terminates.
 	 * @param chunk The chunk to send through to backend.
 	 * @param chunkIndex The index of the chunk relative to total chunks in a file.
 	 */
-	async function sendChunkWithAck(chunk: ArrayBufferLike, chunkIndex: number) {
-		const retryLimitStr = (chunkRetryLimit + 1).toString();
+	async function sendChunk(chunk: ArrayBufferLike, chunkIndex: number) {
 		const chunkIndexStr = chunkIndex.toString();
 
-		// While there are more unacked chunks than the in-flight limit...
-		let inFlightRetryCount = 0;
-		while (getUnackedChunkCount(chunkAcksRef.current) >= chunkInFlightLimit) {
-			const retryCountStr = (inFlightRetryCount + 1).toString();
+		async function sendChunkWithAckAndRetry(maxAttempts: number) {
+			const maxAttemptsStr = maxAttempts.toString();
+			let isChunkSent = false;
 
-			// If retry limit is exceeded, throw error
-			if (inFlightRetryCount > chunkRetryLimit) {
-				throw new Error(
-					`${generateLogPrefix()} - In-flight limit (${retryLimitStr}) exceeded for chunk [${chunkIndexStr}], aborting...`
-				);
+			for (let attempt = 1; attempt <= chunkMaxAttempts; attempt++) {
+				const attemptStr = attempt.toString();
+
+				if (getUnackedChunkCount(chunkAcksRef.current) < chunkMaxInFlight) {
+					try {
+						if (!isChunkSent) {
+							await send(chunk);
+							isChunkSent = true;
+						}
+						chunkAcksRef.current[chunkIndex] = { acked: false, timestamp: Date.now() };
+						if (chunkIndex % chunkAckInterval === 0 || chunkIndex === totalChunksRef.current - 1) {
+							await new Promise<void>((resolve, reject) => {
+								waitForChunkAck(resolve, reject);
+							});
+						}
+						return;
+					} catch (ex) {
+						console.debug(
+							`WebSocket [${url}] - Send failed (attempt ${attemptStr} / ${maxAttemptsStr}):`,
+							`${parseErrorMessage(ex)}, retrying...`
+						);
+					}
+				} else {
+					const attemptStr = attempt.toString();
+					console.debug(
+						`WebSocket [${url}] - In-flight limit reached (attempt ${attemptStr} / ${maxAttemptsStr}), waiting...`
+					);
+					await sleep(chunkTimeoutMs);
+				}
 			}
-			// Else, wait some time before trying again
-			console.debug(
-				`${generateLogPrefix()} - In-flight limit reached for chunk [${chunkIndexStr}] (attempt ${retryCountStr} / ${retryLimitStr}), waiting...`
-			);
-			await sleep(chunkTimeoutMs);
-			inFlightRetryCount++;
+			throw new Error(`In-flight limit exceeded (${maxAttemptsStr}), aborting...`);
 		}
 
-		// Initialise chunk record as unACKed
-		chunkAcksRef.current[chunkIndex] = { acked: false, timestamp: Date.now() };
+		function waitForChunkAck(resolve: () => void, reject: (reason: Error) => void) {
+			let settled = false;
 
-		// Attempt to send chunk
+			const cleanup = () => {
+				clearTimeout(timeout);
+				clearInterval(checkAck);
+			};
+
+			const timeout = setTimeout(() => {
+				if (!settled) {
+					settled = true;
+					cleanup();
+					reject(new Error(`ACK wait exceeded for chunk [${chunkIndexStr}]`));
+				}
+			}, chunkTimeoutMs);
+
+			const checkAck = setInterval(() => {
+				if (settled) return;
+
+				if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+					settled = true;
+					cleanup();
+					reject(new Error('WebSocket connection was closed while waiting for ACK'));
+					return;
+				}
+
+				if (chunkAcksRef.current[chunkIndex].acked) {
+					settled = true;
+					cleanup();
+					resolve();
+				}
+			}, 50);
+		}
+
 		try {
-			await send(chunk);
-		} catch (e) {
-			throw new Error(`${generateLogPrefix()} - Failed to send chunk: ${parseErrorMessage(e)}`);
-		}
-		// Timeout before checking for ACK
-		await sleep(chunkTimeoutMs);
-
-		// While no ACK has been received from backend...
-		let ackRetryCount = 0;
-		while (!chunkAcksRef.current[chunkIndex].acked) {
-			const retryCountStr = (ackRetryCount + 1).toString();
-
-			// If retry limit is reached, throw error
-			if (ackRetryCount > chunkRetryLimit) {
-				throw new Error(
-					`${generateLogPrefix()} - ACK await limit (${retryLimitStr}) exceeded for chunk [${chunkIndexStr}], aborting...`
-				);
-			}
-			// Else, wait some time before trying again
-			console.debug(
-				`${generateLogPrefix()} - No ACK for chunk [${chunkIndexStr}] (attempt ${retryCountStr} / ${retryLimitStr}), waiting...`
-			);
-			await sleep(chunkTimeoutMs);
-			ackRetryCount++;
+			await sendChunkWithAckAndRetry(doRetryOnChunkFail ? chunkMaxAttempts : 1);
+		} catch (ex) {
+			disconnect();
+			throw parseError(ex);
 		}
 	}
 
 	/**
 	 * Function which establishes a new WebSocket connection to the backend before sending a string or chunk through it.
-	 * A resolved promise is returned if this succeeds, else a rejected promise if it fails.
+	 * If the data fails to send after {@link sendMaxAttempts} attempts, the function is terminated.
 	 * @param data The string or ArrayBuffer chunk to send through to the backend.
 	 */
 	async function send(data: string | ArrayBufferLike): Promise<void> {
-		// Attempt to connect
-		try {
-			await connect();
-		} catch (e) {
-			return Promise.reject(new Error(parseErrorMessage(e)));
+		async function sendWithRetry(maxAttempts: number) {
+			const maxAttemptsStr = maxAttempts.toString();
+
+			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+				if (wsRef.current?.readyState !== WebSocket.OPEN) {
+					throw new Error('Attempted to send data while WebSocket was not open');
+				}
+
+				try {
+					wsRef.current.send(data);
+					return;
+				} catch (ex) {
+					if (attempt < sendMaxAttempts) {
+						const attemptStr = attempt.toString();
+						console.debug(
+							`WebSocket [${url}] - Send failed (attempt ${attemptStr} / ${maxAttemptsStr}):`,
+							`${parseErrorMessage(ex)}, retrying...`
+						);
+						await sleep(sendTimeoutMs);
+					}
+				}
+			}
+			throw new Error(`Send attempt limit reached (${maxAttemptsStr}), aborting...`);
 		}
-		// Attempt to send
-		return attemptSend(data);
+
+		try {
+			if (!isConnectedRef.current) {
+				await connect();
+			}
+			await sendWithRetry(doRetryOnSendFail ? sendMaxAttempts : 1);
+		} catch (e) {
+			disconnect();
+			throw parseError(e);
+		}
 	}
 
 	/**
-	 * Function which sends a string or ArrayBuffer chunk via an established WebSocket to the backend. If the data fails
-	 * to send after {@link sendRetryLimit} attempts, the function is terminated.
-	 * @param data
+	 * Function that establishes a WebSocket connection with the backend. It also initialises listeners for onopen,
+	 * onmessage, onerror and onclose.
+	 *
+	 * If {@link doRetryOnConnectFail} is set to false, the function will not attempt to
+	 * establish a new connection if it fails to connect initially or is closed prematurely.
+	 *
+	 * Otherwise, use {@link connectMaxAttempts} and {@link connectTimeoutMs} to specify how many attempts should be made
+	 * and how often to wait between attempts, if a reconnect is required.
 	 */
-	async function attemptSend(data: string | ArrayBufferLike): Promise<void> {
-		if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-			throw new Error('Attempted to send data while WebSocket was not open');
+	async function connect(): Promise<void> {
+		// TODO: figure out why this needs to run twice after a transfer completes
+		const timeoutMsStr = connectTimeoutMs.toString();
+
+		async function connectWithRetry(maxAttempts: number) {
+			const maxAttemptsStr = maxAttempts.toString();
+
+			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+				try {
+					await new Promise<void>((resolve, reject) => {
+						connectWithTimeout(resolve, reject);
+					});
+					return;
+				} catch (ex) {
+					if (attempt < connectMaxAttempts) {
+						const attemptStr = attempt.toString();
+						console.debug(
+							`WebSocket [${url}] - Connect failed (attempt ${attemptStr} / ${maxAttemptsStr}):`,
+							`${parseErrorMessage(ex)}, retrying...`
+						);
+						await sleep(connectTimeoutMs);
+					}
+				}
+			}
+			throw new Error(`Connect attempt limit reached (${maxAttemptsStr}), aborting...`);
 		}
 
-		const retryLimitStr = (sendRetryLimit + 1).toString();
-
-		// While retry limit has not been reached...
-		let sendRetryCount = 0;
-		while (sendRetryCount <= sendRetryLimit) {
-			const retryCountStr = (sendRetryCount + 1).toString();
-
-			// Attempt to send data
-			try {
-				wsRef.current.send(data);
-				return;
-			} catch (e) {
-				console.debug(
-					`${generateLogPrefix()} - Send failed (attempt ${retryCountStr} / ${retryLimitStr}): ${parseErrorMessage(e)}, retrying...`
-				);
+		function connectWithTimeout(resolve: () => void, reject: (reason: Error) => void) {
+			if (wsRef.current) {
+				console.debug(`WebSocket [${url}] - Connection already exists, disconnecting...`);
+				disconnect();
 			}
+			const ws = new WebSocket(url);
+			wsRef.current = ws;
 
-			// If retry limit is reached, throw error
-			sendRetryCount++;
-			if (sendRetryCount > sendRetryLimit) {
-				const msg = `${generateLogPrefix()} - Send retry limit reached (${retryLimitStr}), aborting...`;
-				throw new Error(msg);
+			const timeout = setTimeout(() => {
+				disconnect();
+				reject(new Error(`WebSocket connection timed out after ${timeoutMsStr}ms`));
+			}, connectTimeoutMs);
+
+			ws.onopen = (ev: Event) => {
+				handleOpen(ws, ev, timeout, resolve);
+			};
+			ws.onmessage = (ev: MessageEvent<string>) => {
+				handleMessage(ws, ev);
+			};
+			ws.onerror = (ev: Event) => {
+				handleError(ws, ev, timeout, reject);
+			};
+			ws.onclose = async (ev: CloseEvent) => {
+				await handleClose(ws, ev);
+			};
+		}
+
+		function handleOpen(ws: WebSocket, ev: Event, timeout: NodeJS.Timeout, resolve: () => void) {
+			clearTimeout(timeout);
+			isConnectedRef.current = true;
+			resolve();
+			console.debug(`WebSocket [${url}] - Connection established.`);
+			onOpen?.(ws, ev);
+		}
+
+		function handleMessage(ws: WebSocket, ev: MessageEvent<string>) {
+			const { chunkIndex, type } = parseChunkMetadata(ev.data);
+			console.debug(`WebSocket [${url}] - Message received:`, ev.data);
+
+			if (type === 'ACK') {
+				for (let i = chunkIndex; i > chunkIndex - chunkAckInterval; i--) {
+					chunkAcksRef.current[i] = { acked: true, timestamp: Date.now() };
+				}
+				// Return percentage completed
+				onProgress?.((chunkIndex / totalChunksRef.current) * 100);
 			}
-			// Else, wait some time before trying again
-			await sleep(sendRetryTimeoutMs);
+			onMessage?.(ws, ev);
+		}
+
+		function handleError(ws: WebSocket, ev: Event, timeout: NodeJS.Timeout, reject: (reason: Error) => void) {
+			clearTimeout(timeout);
+			reject(new Error('WebSocket connection failed'));
+			onError?.(ws, ev);
+		}
+
+		async function handleClose(ws: WebSocket, ev: CloseEvent) {
+			wsRef.current = null;
+			if (doRetryOnConnectFail && !ev.wasClean && isConnectedRef.current) {
+				try {
+					await connectWithRetry(connectMaxAttempts);
+				} catch (ex) {
+					console.error(`WebSocket [${url}] - Reconnect failed: ${parseErrorMessage(ex)}`);
+					onClose?.(ws, ev);
+				}
+			} else {
+				console.debug(`WebSocket [${url}] - Connection terminated.`);
+				onClose?.(ws, ev);
+			}
+		}
+
+		try {
+			await connectWithRetry(doRetryOnConnectFail ? connectMaxAttempts : 1);
+		} catch (ex) {
+			throw parseError(ex);
 		}
 	}
 
@@ -290,7 +401,7 @@ function useWebSocket(props: useWebSocketProps): WebSocketState {
 	 * Function which closes the existing WebSocket connection and clears all refs.
 	 */
 	function disconnect() {
-		manuallyClosedRef.current = true;
+		isConnectedRef.current = false;
 		chunkAcksRef.current = {};
 		wsRef.current?.close();
 		wsRef.current = null;
@@ -335,109 +446,13 @@ function useWebSocket(props: useWebSocketProps): WebSocketState {
 
 	useEffect(() => {
 		return () => {
-			// Ensure WebSocket is closed and cleaned up on component unmount.
+			// Ensure WebSocket is closed and cleaned up on component unmount
 			disconnect();
 		};
 	}, []);
 
-	/**
-	 * Handler function that handles what should happen when a WebSocket connection is established. It resolves the
-	 * connectPromiseRef which allows {@link connect} to resolve. If {@link onOpen} is provided, it is called with the
-	 * same properties this function was called with.
-	 * @param ev The event which triggered this function.
-	 */
-	function handleOpen(this: WebSocket, ev: Event) {
-		onOpen?.(this, ev);
-
-		connectRetryCountRef.current = 0;
-		setIsConnected(true);
-		connectPromiseRef.current?.resolve();
-		connectPromiseRef.current = null;
-	}
-
-	/**
-	 * Handler function that handles what should happen when a WebSocket receives a message from the backend. The message
-	 * must be a {@link ChunkMetadata} object in JSON-string form. If the message type is an ACK, it is updated in
-	 * {@link chunkAcksRef}. If {@link onMessage} is provided, it is called with the same properties this function was
-	 * called with.
-	 * @param ev The event which triggered this function.
-	 */
-	function handleMessage(this: WebSocket, ev: MessageEvent<string>) {
-		onMessage?.(this, ev);
-
-		const { chunkIndex, type } = parseChunkMetadata(ev.data);
-		if (type === 'ACK') {
-			chunkAcksRef.current[chunkIndex] = { acked: true, timestamp: Date.now() };
-		}
-	}
-
-	/**
-	 * Handler function that handles what should happen when an exception occurs within a WebSocket session. A maximum of
-	 * {@link connectRetryLimit} attempts to reconnect are made. If a connection cannot be re-obtained by the time this
-	 * limit is reached, the connection is closed. If {@link onError} is provided, it is called with the same properties
-	 * this function was called with.
-	 * @param ev The event which triggered this function.
-	 */
-	function handleError(this: WebSocket, ev: Event) {
-		// Run onError if provided
-		onError?.(this, ev);
-
-		const retryLimitStr = (connectRetryLimit + 1).toString();
-		const retryCountStr = (connectRetryCountRef.current + 1).toString();
-
-		// If retry limit is exceeded, throw error
-		if (connectRetryCountRef.current >= connectRetryLimit) {
-			connectPromiseRef.current?.reject(
-				new Error(
-					`${generateLogPrefix()} - Connection retry limit reached (${retryLimitStr} / ${retryLimitStr}), aborting...`
-				)
-			);
-			connectPromiseRef.current = null;
-			return;
-		}
-		// Else, try again
-		console.debug(
-			`${generateLogPrefix()} - Connection failed (attempt ${retryCountStr} / ${retryLimitStr}), retrying...`
-		);
-	}
-
-	/**
-	 * Handler function that handles what should happen when a WebSocket session is closed. If the session was not closed
-	 * gracefully, a maximum of {@link connectRetryLimit} attempts to reconnect are made. If a connection cannot be
-	 * re-obtained by the time this limit is reached, the connection is closed. If {@link onClose} is provided, it is
-	 * called with the same properties which this function was called with.
-	 * @param ev The event which triggered this function.
-	 */
-	function handleClose(this: WebSocket, ev: CloseEvent) {
-		// Run onClose if provided
-		onClose?.(this, ev);
-
-		// Clear ref
-		wsRef.current = null;
-		setIsConnected(false);
-
-		// Check if reconnect is required
-		const shouldRetry =
-			!manuallyClosedRef.current &&
-			connectRetryOnClose &&
-			!ev.wasClean &&
-			connectRetryCountRef.current < connectRetryLimit;
-
-		// Attempt to reconnect if required
-		if (shouldRetry) {
-			connectRetryCountRef.current++;
-			setTimeout(attemptConnect, connectRetryTimeoutMs);
-		} else if (connectPromiseRef.current) {
-			connectPromiseRef.current.reject(new Error('WebSocket connection closed before connection could be established'));
-			connectPromiseRef.current = null;
-		} else {
-			console.debug(`${generateLogPrefix()} - Connection terminated.`);
-		}
-	}
-
 	return {
 		ws: wsRef.current,
-		isConnected,
 		connect,
 		disconnect,
 		send,

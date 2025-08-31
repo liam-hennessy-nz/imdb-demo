@@ -15,9 +15,7 @@ public class Title {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@OneToOne(mappedBy = "title")
-	private tconstMap tconstMap;
-	@Column
-	private String titleType;
+	private TconstMap tconstMap;
 	@Column(length = 512)
 	private String primaryTitle;
 	@Column(length = 512)
@@ -30,6 +28,8 @@ public class Title {
 	private Year endYear;
 	@Column
 	private Integer runtimeMinutes;
+	@ManyToMany(mappedBy = "titles")
+	private Set<Type> types;
 	@ManyToMany(mappedBy = "titles")
 	private Set<Genre> genres;
 

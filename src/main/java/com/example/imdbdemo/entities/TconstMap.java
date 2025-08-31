@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "tconst_maps", uniqueConstraints = {@UniqueConstraint(columnNames = "tconst")})
-public class tconstMap {
+public class TconstMap {
 	@Id
 	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,6 +1,6 @@
 package com.example.imdbdemo.config;
 
-import com.example.imdbdemo.constants.AppConstants;
+import com.example.imdbdemo.config.props.AppProps;
 import com.example.imdbdemo.websockets.SessionWebSocketHandler;
 import com.example.imdbdemo.websockets.upload.UploadWebSocketHandler;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +17,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
 	private final UploadWebSocketHandler uploadWebSocketHandler;
 	private final SessionWebSocketHandler sessionWebSocketHandler;
 
-	public WebSocketConfig(UploadWebSocketHandler uploadWebSocketHandler, SessionWebSocketHandler sessionWebSocketHandler) {
+	public WebSocketConfig(
+		UploadWebSocketHandler uploadWebSocketHandler,
+		SessionWebSocketHandler sessionWebSocketHandler
+	) {
 		this.uploadWebSocketHandler = uploadWebSocketHandler;
 		this.sessionWebSocketHandler = sessionWebSocketHandler;
 	}
@@ -25,17 +28,16 @@ public class WebSocketConfig implements WebSocketConfigurer {
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 		registry
-			.addHandler(sessionWebSocketHandler, "/ws/session")
-			.setAllowedOrigins("*")
-			.addHandler(uploadWebSocketHandler, "/ws/upload")
+			.addHandler(uploadWebSocketHandler, "/ws/session")
 			.setAllowedOrigins("*");
 	}
 
 	@Bean
-	public ServletServerContainerFactoryBean createWebSocketContainer(AppConstants appConstants) {
+	public ServletServerContainerFactoryBean createWebSocketContainer(AppProps props) {
 		ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-		container.setMaxBinaryMessageBufferSize(appConstants.getWebSocketChunkSize());
-		container.setMaxTextMessageBufferSize(appConstants.getWebSocketChunkSize());
+		// Set max bytes to chunkSize + int size for chunkIndex
+		container.setMaxBinaryMessageBufferSize(props.ws().chunkSize() + Integer.BYTES);
+		container.setMaxTextMessageBufferSize(props.ws().chunkSize() + Integer.BYTES);
 		return container;
 	}
 }

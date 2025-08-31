@@ -29,33 +29,35 @@ same name. This will override the default value. The environment variables are:
 
 **Backend**
 
-| Variable             | Default                        | Description                                  |
-|----------------------|--------------------------------|----------------------------------------------|
-| `IMDB_DEMO_HOST`     | `localhost`                    | The hostname which the backend will bind to  |
-| `IMDB_DEMO_PORT`     | `8443`                         | The port which the backend will bind to      |
-| `IMDB_DEMO_USE_TLS`  | `false`                        | Whether the backend will use TLS             |
-| `IMDB_DEMO_DB_HOST`  | `localhost`                    | The hostname which the database will bind to |
-| `IMDB_DEMO_DB_PORT`  | `5432`                         | The port which the database will bind to     |
-| `IMDB_DEMO_DB_NAME`  | `dev_imdb_demo`                | The name the database will have              |
-| `IMDB_DEMO_DB_USER`  | `postgres`                     | The username the database user will use      |
-| `IMDB_DEMO_DB_PASS`  | `password`                     | The password the database user will use      |
-| `IMDB_DEMO_KS_TYPE`  | `PKCS12`                       | The type of the ssl keystore                 |
-| `IMDB_DEMO_KS_PATH`  | `classpath:certs/keystore.p12` | The relative path to the ssl keystore        |
-| `IMDB_DEMO_KS_ALIAS` | `imdb-demo-cert`               | The alias of the ssl keystore                |
-| `IMDB_DEMO_KS_PASS`  | `changeit`                     | The password to the ssl keystore             |
+| Variable             | Default                       | Description                                  |
+|----------------------|-------------------------------|----------------------------------------------|
+| `IMDB_DEMO_HOST`     | `localhost`                   | The hostname which the backend will bind to  |
+| `IMDB_DEMO_PORT`     | `8443`                        | The port which the backend will bind to      |
+| `IMDB_DEMO_USE_TLS`  | `false`                       | Whether the backend will use TLS             |
+| `IMDB_DEMO_DB_HOST`  | `localhost`                   | The hostname which the database will bind to |
+| `IMDB_DEMO_DB_PORT`  | `5432`                        | The port which the database will bind to     |
+| `IMDB_DEMO_DB_NAME`  | `dev_imdb_demo`               | The name the database will have              |
+| `IMDB_DEMO_DB_USER`  | `postgres`                    | The username the database user will use      |
+| `IMDB_DEMO_DB_PASS`  | `password`                    | The password the database user will use      |
+| `IMDB_DEMO_KS_PATH`  | `classpath:tls/imdb-demo.p12` | The relative path to the tls keystore        |
+| `IMDB_DEMO_KS_TYPE`  | `PKCS12`                      | The type of the tls keystore                 |
+| `IMDB_DEMO_KS_ALIAS` | `imdb-demo-cert`              | The alias of the tls keystore                |
+| `IMDB_DEMO_KS_PASS`  | `changeit`                    | The password to the tls keystore             |
 
 **Frontend**
 
-| Variable        | Default     | Description                                  |
-|-----------------|-------------|----------------------------------------------|
-| `VITE_HOST`     | `localhost` | The hostname which the frontend will bind to |
-| `VITE_PORT`     | `5173`      | The port which the frontend will bind to     |
-| `VITE_USE_TLS`  | `false`     | Whether the frontend will use TLS            |
-| `VITE_API_HOST` | `localhost` | The hostname which the backend is using      |
-| `VITE_API_PORT` | `8443`      | The port which the backend is using          |
-| `VITE_KS_PATH`  | `certs`     | The relative path to the ssl key/cert        |
+| Variable            | Default             | Description                                  |
+|---------------------|---------------------|----------------------------------------------|
+| `VITE_HOST`         | `localhost`         | The hostname which the frontend will bind to |
+| `VITE_PORT`         | `5173`              | The port which the frontend will bind to     |
+| `VITE_USE_TLS`      | `false`             | Whether the frontend will use TLS            |
+| `VITE_API_HOST`     | `localhost`         | The hostname which the backend is bound to   |
+| `VITE_API_PORT`     | `8443`              | The port which the backend is bound to       |
+| `VITE_TLS_KEY_PATH` | `tls/imdb-demo.key` | The relative path to the tls key             |
+| `VITE_TLS_CRT_PATH` | `tls/imdb-demo.crt` | The relative path to the tls certificate     |
 
 # TLS
 
 If TLS is needed, `IMDB_DEMO_USE_TLS` and `VITE_USE_TLS` can be set to `true`. Just ensure you have valid keys/certs
-in the correct locations, specified by `IMDB_DEMO_KS_PATH` and `VITE_KS_PATH`, respectively.
+in the correct locations, specified by `IMDB_DEMO_KS_PATH` for the backend and `VITE_TLS_KEY_PATH`/`VITE_TLS_CRT_PATH`
+for the frontend.

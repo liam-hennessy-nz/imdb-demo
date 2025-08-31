@@ -1,3 +1,7 @@
+import type { WebSocketState } from '../../../hooks/useWebSocket.ts';
+
 export interface SessionSocketContextType {
-	isConnected: boolean;
+	ws: WebSocketState;
+	setIsUploadProgressVisible: (visible: boolean) => void;
+	setUploadProgress: (progress: number) => void;
 }

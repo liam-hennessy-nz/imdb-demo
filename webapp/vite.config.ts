@@ -11,16 +11,18 @@ export default defineConfig(({ mode }) => {
 	const host = env.VITE_HOST;
 	const port = parseInt(env.VITE_PORT, 10);
 	const useTls = env.VITE_USE_TLS === 'true';
-	const ksPath = env.VITE_KS_PATH;
+	const tlsKeyPath = env.VITE_TLS_KEY_PATH;
+	const tlsCrtPath = env.VITE_TLS_CRT_PATH;
 
 	return {
 		server: {
 			host: host,
 			port: port,
+			strictPort: true,
 			https: useTls
 				? {
-						key: fs.readFileSync(path.resolve(__dirname, `${ksPath}/localhost.key`)),
-						cert: fs.readFileSync(path.resolve(__dirname, `${ksPath}/localhost.crt`)),
+						key: fs.readFileSync(path.resolve(__dirname, tlsKeyPath)),
+						cert: fs.readFileSync(path.resolve(__dirname, tlsCrtPath)),
 					}
 				: undefined,
 		},

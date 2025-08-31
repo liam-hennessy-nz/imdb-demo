@@ -26,6 +26,7 @@ public class UploadWebSocketHandler extends AbstractWebSocketHandler {
 
 	private final Map<WebSocketSession, OutputStream> outputStreams = new ConcurrentHashMap<>();
 	private final Map<WebSocketSession, Future<?>> copyFutures = new ConcurrentHashMap<>();
+	private final Map<WebSocketSession, FileMetadataDTO> files = new ConcurrentHashMap<>();
 	private final ExecutorService streamingExecutor;
 	private final UploadWebSocketHelper uploadWebSocketHelper;
 	private final ObjectMapper objectMapper;
@@ -89,21 +90,9 @@ public class UploadWebSocketHandler extends AbstractWebSocketHandler {
 
 		String payload = message.getPayload();
 
-		// If text message is EOF request, flush OutputStream so PostgreSQL copy completes
+		// If payload is EOF, finish up
 		if ("EOF".equals(payload)) {
-			log.info("WebSocket [{}] - EOF received, completing COPY", session.getId());
-			OutputStream outputStream = outputStreams.remove(session);
-			try {
-				outputStream.flush();
-				outputStream.close();
-			} catch (IOException e) {
-				// Log and close connection if exception is caught
-				log.error("WebSocket [{}] - Failed to flush and close output stream", session.getId(), e);
-				uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
-				return;
-			}
-			log.info("WebSocket [{}] - COPY completed successfully", session.getId());
-			uploadWebSocketHelper.closeConnection(session, CloseStatus.NORMAL);
+			uploadWebSocketHelper.handleEof(session, outputStreams);
 			return;
 		}
 
@@ -111,6 +100,7 @@ public class UploadWebSocketHandler extends AbstractWebSocketHandler {
 		FileMetadataDTO fileMetadata;
 		try {
 			fileMetadata = objectMapper.readValue(message.getPayload(), FileMetadataDTO.class);
+			files.put(session, fileMetadata);
 		} catch (JsonProcessingException e) {
 			// Log and close connection if exception is caught
 			log.error("WebSocket [{}] - Failed to parse file metadata: {}", session.getId(), e.getMessage(), e);
@@ -177,6 +167,30 @@ public class UploadWebSocketHandler extends AbstractWebSocketHandler {
 
 		// Parse chunk index from first 4 bytes (big-endian)
 		int chunkIndex = message.getPayload().getInt();
+		log.info("WebSocket [{}] - Received binary message for chunk [{}]", session.getId(), chunkIndex);
+
+		int ackFrequency = files.get(session).getAckInterval();
+		int totalChunks = files.get(session).getTotalChunks();
+		if (chunkIndex % ackFrequency == 0 || chunkIndex == totalChunks - 1) {
+			ChunkMetadataDTO chunkMetadataDTO = ChunkMetadataDTO.builder()
+				.type("ACK")
+				.chunkIndex(chunkIndex)
+				.build();
+
+			// Attempt to send ACK back to frontend
+			try {
+				session.sendMessage(new TextMessage(objectMapper.writeValueAsString(chunkMetadataDTO)));
+				log.info("WebSocket [{}] - Sent ACK for chunk [{}]", session.getId(), chunkIndex);
+			} catch (JsonProcessingException e) {
+				// Log and close connection if exception is caught
+				log.error("WebSocket [{}] - Failed to convert ChunkMetadata to String: {}", session.getId(), e.getMessage(), e);
+				uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
+			} catch (IOException e) {
+				// Log and close connection if exception is caught
+				log.error("WebSocket [{}] - Failed to send message via WebSocket: {}", session.getId(), e.getMessage(), e);
+				uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
+			}
+		}
 
 		// Get chunk data
 		byte[] data = new byte[message.getPayload().remaining()];
@@ -188,25 +202,6 @@ public class UploadWebSocketHandler extends AbstractWebSocketHandler {
 		} catch (IOException e) {
 			// Log and close connection if exception is caught
 			log.error("WebSocket [{}] - Failed to write payload to OutputStream: {}", session.getId(), e.getMessage(), e);
-			uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
-			return;
-		}
-
-		ChunkMetadataDTO chunkMetadataDTO = ChunkMetadataDTO.builder()
-			.type("ACK")
-			.chunkIndex(chunkIndex)
-			.build();
-
-		// Attempt to send ACK back to frontend
-		try {
-			session.sendMessage(new TextMessage(objectMapper.writeValueAsString(chunkMetadataDTO)));
-		} catch (JsonProcessingException e) {
-			// Log and close connection if exception is caught
-			log.error("WebSocket [{}] - Failed to convert ChunkMetadata to String: {}", session.getId(), e.getMessage(), e);
-			uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
-		} catch (IOException e) {
-			// Log and close connection if exception is caught
-			log.error("WebSocket [{}] - Failed to send message via WebSocket: {}", session.getId(), e.getMessage(), e);
 			uploadWebSocketHelper.closeConnection(session, CloseStatus.SERVER_ERROR);
 		}
 	}

@@ -55,41 +55,155 @@ public class ImdbNameBasicService {
 					String value = constraint.getValue();
 					String matchMode = constraint.getMatchMode();
 
-					if (StringUtils.isNotBlank(value)) {
-						switch (field) {
-							case "nconst":
-								if ("contains".equals(matchMode)) {
+					if (StringUtils.isBlank(value)) continue;
+
+					switch (field) {
+						case "nconst":
+							switch (matchMode) {
+								case "startsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.nconst.startsWith(value));
+									break;
+								case "contains":
 									predicate.and(QImdbNameBasic.imdbNameBasic.nconst.contains(value));
-								}
-								break;
-							case "primaryName":
-								if ("equals".equals(matchMode)) {
+									break;
+								case "notContains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.nconst.contains(value).not());
+									break;
+								case "endsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.nconst.endsWith(value));
+									break;
+								case "equals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.nconst.eq(value));
+									break;
+								case "notEquals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.nconst.ne(value));
+									break;
+								default:
+									break;
+							}
+							break;
+						case "primaryName":
+							switch (matchMode) {
+								case "startsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.startsWith(value));
+									break;
+								case "contains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.contains(value));
+									break;
+								case "notContains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.contains(value).not());
+									break;
+								case "endsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.endsWith(value));
+									break;
+								case "equals":
 									predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.eq(value));
-								}
-								break;
-							case "birthYear":
-								if ("equals".equals(matchMode)) {
+									break;
+								case "notEquals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.ne(value));
+									break;
+								default:
+									break;
+							}
+							break;
+						case "birthYear":
+							switch (matchMode) {
+								case "startsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.startsWith(value));
+									break;
+								case "contains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.contains(value));
+									break;
+								case "notContains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.contains(value).not());
+									break;
+								case "endsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.endsWith(value));
+									break;
+								case "equals":
 									predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.eq(value));
-								}
-								break;
-							case "deathYear":
-								if ("equals".equals(matchMode)) {
+									break;
+								case "notEquals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.ne(value));
+									break;
+								default:
+									break;
+							}
+							break;
+						case "deathYear":
+							switch (matchMode) {
+								case "startsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.startsWith(value));
+									break;
+								case "contains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.contains(value));
+									break;
+								case "notContains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.contains(value).not());
+									break;
+								case "endsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.endsWith(value));
+									break;
+								case "equals":
 									predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.eq(value));
-								}
-								break;
-							case "primaryProfession":
-								if ("equals".equals(matchMode)) {
+									break;
+								case "notEquals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.ne(value));
+									break;
+								default:
+									break;
+							}
+							break;
+						case "primaryProfession":
+							switch (matchMode) {
+								case "startsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.startsWith(value));
+									break;
+								case "contains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.contains(value));
+									break;
+								case "notContains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.contains(value).not());
+									break;
+								case "endsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.endsWith(value));
+									break;
+								case "equals":
 									predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.eq(value));
-								}
-								break;
-							case "knownForTitles":
-								if ("equals".equals(matchMode)) {
+									break;
+								case "notEquals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.ne(value));
+									break;
+								default:
+									break;
+							}
+							break;
+						case "knownForTitles":
+							switch (matchMode) {
+								case "startsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.startsWith(value));
+									break;
+								case "contains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.contains(value));
+									break;
+								case "notContains":
+									predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.contains(value).not());
+									break;
+								case "endsWith":
+									predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.endsWith(value));
+									break;
+								case "equals":
 									predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.eq(value));
-								}
-								break;
-							default:
-								break;
-						}
+									break;
+								case "notEquals":
+									predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.ne(value));
+									break;
+								default:
+									break;
+							}
+							break;
+						default:
+							break;
 					}
 				}
 			}
@@ -141,7 +255,6 @@ public class ImdbNameBasicService {
 
 		return new PageImpl<>(results, pageable, total == null ? 0 : total);
 	}
-
 
 	public Page<ImdbNameBasicDTO> findAll(Pageable pageable) {
 		return imdbNameBasicRepository.findAll(pageable).map(imdbNameBasicMapper::mapToDto);

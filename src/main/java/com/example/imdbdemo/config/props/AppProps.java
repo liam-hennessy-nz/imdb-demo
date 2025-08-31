@@ -15,9 +15,9 @@ public record AppProps (
 	@Min(1024) @Max(65535) int port,
 	@NotNull boolean useTls,
 	@Valid DbProps db,
-	@Valid KsProps ks
+	@Valid KsProps ks,
+	@Valid WsProps ws
 ) {
-
 	public record DbProps (
 		@NotBlank String host,
 		@Min(1024) @Max(65535) int port,
@@ -31,5 +31,9 @@ public record AppProps (
 		@NotBlank String type,
 		@NotBlank String alias,
 		@NotBlank String pass
+	) {}
+
+	public record WsProps (
+		@Min(1) @Max(2097152) int chunkSize
 	) {}
 }
