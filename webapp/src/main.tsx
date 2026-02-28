@@ -1,32 +1,27 @@
-import 'primeflex/primeflex.css';
-import 'primereact/resources/primereact.css';
-import 'primeicons/primeicons.css';
-import 'primereact/resources/themes/viva-dark/theme.css';
 import './main.css';
-
-import { createRoot } from 'react-dom/client';
+import { PrimeReactProvider } from '@primereact/core';
 import { StrictMode } from 'react';
-import { PrimeReactProvider } from 'primereact/api';
-import App from './App';
-import { AppProvider } from './main/components/contexts/AppContext';
-import { SessionSocketProvider } from './main/components/contexts/SessionSocketContext';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
-import { StorageProvider } from './main/components/contexts/StorageContext';
+import App from './App.tsx';
+import { AppProvider } from './main/shared/context/AppContext/AppProvider.tsx';
+import { StorageProvider } from './main/storage/context/StorageProvider.tsx';
+import { UploadProvider } from './main/upload/context/uploadContext/UploadProvider.tsx';
+import { auraCustomBlue } from './theme/auraCustomBlue.ts';
 
 const rootElement = document.getElementById('root');
-
-if (!rootElement) throw new Error('Failed to find root element');
+if (rootElement === null) throw new Error('Failed to find root element');
 
 createRoot(rootElement).render(
 	<StrictMode>
-		<PrimeReactProvider>
+		<PrimeReactProvider theme={auraCustomBlue}>
 			<BrowserRouter>
 				<StorageProvider>
-					<SessionSocketProvider>
+					<UploadProvider>
 						<AppProvider>
 							<App />
 						</AppProvider>
-					</SessionSocketProvider>
+					</UploadProvider>
 				</StorageProvider>
 			</BrowserRouter>
 		</PrimeReactProvider>

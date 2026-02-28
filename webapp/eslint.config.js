@@ -1,14 +1,14 @@
 import js from '@eslint/js';
-import globals from 'globals';
+import prettierConfig from 'eslint-config-prettier/flat';
+import prettier from 'eslint-plugin-prettier';
 import react from 'eslint-plugin-react';
-import reactX from 'eslint-plugin-react-x';
+import reactCompiler from 'eslint-plugin-react-compiler';
 import reactDom from 'eslint-plugin-react-dom';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
-import reactCompiler from 'eslint-plugin-react-compiler';
+import reactX from 'eslint-plugin-react-x';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import prettier from 'eslint-plugin-prettier';
-import prettierConfig from 'eslint-config-prettier/flat';
 
 export default tseslint.config([
 	{ ignores: ['dist'] },
@@ -46,8 +46,22 @@ export default tseslint.config([
 			...reactX.configs['recommended-typescript'].rules,
 			...reactDom.configs.recommended.rules,
 			...reactCompiler.configs.recommended.rules,
+			'eqeqeq': ['error', 'always'],
+			'no-console': 'warn',
 			'react/react-in-jsx-scope': 'off',
+			'react/jsx-no-literals': 'off',
+			'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
 			'react-x/no-unstable-context-value': 'off',
+			'@typescript-eslint/restrict-template-expressions': ['warn', { allowNumber: true }],
+			'@typescript-eslint/strict-boolean-expressions': [
+				'error',
+				{
+					allowString: false,
+					allowNumber: false,
+					allowNullableObject: false,
+					allowNullableBoolean: true,
+				},
+			],
 		},
 	},
 	prettierConfig,

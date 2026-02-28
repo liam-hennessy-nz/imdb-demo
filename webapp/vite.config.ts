@@ -1,8 +1,9 @@
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
-import checker from 'vite-plugin-checker';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from 'vite';
+import checker from 'vite-plugin-checker';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -39,6 +40,7 @@ export default defineConfig(({ mode }) => {
 					useFlatConfig: true,
 				},
 			}),
+			tailwindcss(),
 		],
 	};
 });

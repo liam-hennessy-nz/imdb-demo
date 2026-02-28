@@ -7,5 +7,9 @@
 	"semi": true,
 	"bracketSpacing": true,
 	"quoteProps": "consistent",
-	"arrowParens": "always"
+	"arrowParens": "always",
+	"plugins": ["@ianvs/prettier-plugin-sort-imports"],
+	"importOrder": ["^@core/(.*)$", "^@server/(.*)$", "^@ui/(.*)$", "^[./]"],
+	"importOrderTypeScriptVersion": "5.0.0",
+	"importOrderCaseSensitive": false
 }

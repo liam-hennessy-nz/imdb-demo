@@ -11,7 +11,7 @@ services:
     ports:
       - ${IMDB_DEMO_DB_PORT:-5432}:${IMDB_DEMO_DB_PORT:-5432}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
 
 volumes:
   postgres-data:
