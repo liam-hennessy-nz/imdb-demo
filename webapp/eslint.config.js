@@ -7,22 +7,37 @@ import reactDom from 'eslint-plugin-react-dom';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import reactX from 'eslint-plugin-react-x';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config([
-	{ ignores: ['dist'] },
+export default defineConfig([
+	globalIgnores(['dist']),
 	{
 		files: ['**/*.{ts,tsx}'],
-		extends: [js.configs.recommended, ...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked],
+		plugins: { prettier },
+		extends: [
+			js.configs.recommended,
+			...tseslint.configs.strictTypeChecked,
+			...tseslint.configs.stylisticTypeChecked,
+			react.configs.flat.recommended,
+			reactCompiler.configs.recommended,
+			reactDom.configs.strict,
+			reactHooks.configs.flat.recommended,
+			reactRefresh.configs.recommended,
+			reactRefresh.configs.vite,
+			reactX.configs['strict-type-checked'],
+		],
 		languageOptions: {
 			ecmaVersion: 2020,
-			globals: globals.browser,
 			parserOptions: {
 				projectService: true,
 				ecmaFeatures: {
 					jsx: true,
 				},
+			},
+			globals: {
+				...globals.browser,
 			},
 		},
 		settings: {
@@ -30,22 +45,8 @@ export default tseslint.config([
 				version: 'detect',
 			},
 		},
-		plugins: {
-			prettier,
-			react,
-			'react-refresh': reactRefresh,
-			'react-hooks': reactHooks,
-			'react-x': reactX,
-			'react-dom': reactDom,
-			'react-compiler': reactCompiler,
-		},
 		rules: {
 			'prettier/prettier': 'warn',
-			...react.configs.recommended.rules,
-			...reactHooks.configs.recommended.rules,
-			...reactX.configs['recommended-typescript'].rules,
-			...reactDom.configs.recommended.rules,
-			...reactCompiler.configs.recommended.rules,
 			'eqeqeq': ['error', 'always'],
 			'no-console': 'warn',
 			'react/react-in-jsx-scope': 'off',
@@ -53,6 +54,14 @@ export default tseslint.config([
 			'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
 			'react-x/no-unstable-context-value': 'off',
 			'@typescript-eslint/restrict-template-expressions': ['warn', { allowNumber: true }],
+			'@typescript-eslint/no-unused-vars': [
+				'warn',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrorsIgnorePattern: '^_',
+				},
+			],
 			'@typescript-eslint/strict-boolean-expressions': [
 				'error',
 				{
