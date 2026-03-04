@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router';
 import Banner from './main/shared/component/menu/Banner.tsx';
 import MainMenu from './main/shared/component/menu/MainMenu.tsx';
-import { useApp } from './main/shared/context/AppContext/useApp.ts';
+import { useApp } from './main/shared/context/AppContext/AppContext.ts';
 import AppRoutes from './main/shared/route/AppRoutes.tsx';
 
 function App() {

@@ -6,7 +6,7 @@ import { FileUpload } from '@primereact/ui/fileupload';
 import { parseErrorMessage } from '../../../shared/commonFunctions.ts';
 import type { DatasetKey } from '../../../shared/entity/Datasets.ts';
 import { devLog } from '../../../shared/util/devLog.ts';
-import { useUpload } from '../../context/uploadContext/useUpload.ts';
+import { useUpload } from '../../context/uploadContext/UploadContext.ts';
 import type { Upload } from '../../entity/Upload.ts';
 import { parseDatasetKey } from '../../service/UploadHelper.ts';
 

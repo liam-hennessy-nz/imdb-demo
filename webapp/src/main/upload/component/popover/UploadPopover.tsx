@@ -2,8 +2,8 @@ import { ChevronDownIcon, ChevronUpIcon } from '@primereact/icons';
 import { Button } from '@primereact/ui/button';
 import { Popover } from '@primereact/ui/popover';
 import { useEffect, useState } from 'react';
-import { useApp } from '../../../shared/context/AppContext/useApp.ts';
-import { useUpload } from '../../context/uploadContext/useUpload.ts';
+import { useApp } from '../../../shared/context/AppContext/AppContext.ts';
+import { useUpload } from '../../context/uploadContext/UploadContext.ts';
 import type { UploadState } from '../../entity/UploadState.ts';
 
 export function UploadPopover() {

@@ -50,9 +50,7 @@ export default defineConfig([
 			'eqeqeq': ['error', 'always'],
 			'no-console': 'warn',
 			'react/react-in-jsx-scope': 'off',
-			'react/jsx-no-literals': 'off',
 			'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
-			'react-x/no-unstable-context-value': 'off',
 			'@typescript-eslint/restrict-template-expressions': ['warn', { allowNumber: true }],
 			'@typescript-eslint/no-unused-vars': [
 				'warn',

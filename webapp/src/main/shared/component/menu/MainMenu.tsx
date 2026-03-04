@@ -2,7 +2,7 @@ import { AngleDoubleLeftIcon, AngleDoubleRightIcon } from '@primereact/icons';
 import { Button } from '@primereact/ui/button';
 import { Menu } from '@primereact/ui/menu';
 import { Link } from 'react-router';
-import { useApp } from '../../context/AppContext/useApp.ts';
+import { useApp } from '../../context/AppContext/AppContext.ts';
 
 function MainMenu() {
 	const { isSidebarVisible, toggleSidebarVisible } = useApp();

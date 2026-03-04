@@ -1,5 +1,5 @@
 import { Button } from '@primereact/ui/button';
-import { useStorage } from '../../../storage/context/useStorage.ts';
+import { useStorage } from '../../../storage/context/StorageContext.ts';
 
 function Documents() {
 	const storage = useStorage();
@@ -8,7 +8,7 @@ function Documents() {
 		<div>
 			<Button
 				onClick={() => {
-					storage.set('test', 'test', true);
+					storage.set('test', 'test');
 				}}
 			/>
 		</div>

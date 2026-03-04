@@ -1,44 +1,47 @@
-import { useEffect, useState, type PropsWithChildren } from 'react';
-import { useSearchParams } from 'react-router';
-import { useStorage } from '../../../storage/context/useStorage.ts';
+import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { useStorage } from '../../../storage/context/StorageContext.ts';
 import { STORAGE } from '../../constant/constants.ts';
-import { devLog } from '../../util/devLog.ts';
-import { AppContext, type AppContextType } from './AppContext.ts';
+import { AppContext } from './AppContext.ts';
+
+export interface AppContextType {
+	isDarkModeEnabled: boolean;
+	isSidebarVisible: boolean;
+	isUploadsVisible: boolean;
+	setDarkModeEnabled: (isEnabled: boolean) => void;
+	setSidebarVisible: (isVisible: boolean) => void;
+	setUploadsVisible: (isVisible: boolean) => void;
+	toggleDarkModeEnabled: () => void;
+	toggleSidebarVisible: () => void;
+	toggleUploadsVisible: () => void;
+}
 
 export function AppProvider({ children }: PropsWithChildren) {
 	const storage = useStorage();
-	const [searchParams, setSearchParams] = useSearchParams();
 
-	const [isDarkModeEnabled, setIsDarkModeEnabled] = useState<boolean>(false);
-	const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
-	const [isUploadsVisible, setIsUploadsVisible] = useState<boolean>(false);
+	const [isDarkModeEnabled, setIsDarkModeEnabled] = useState<boolean>(() => {
+		const initVal = (storage.find(STORAGE.KEYS.IS_DARK_MODE_ENABLED) as boolean | string | null) ?? false;
+		return initVal === true || initVal === 'true';
+	});
+	const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(() => {
+		const initVal = (storage.find(STORAGE.KEYS.IS_SIDEBAR_VISIBLE) as boolean | string | null) ?? true;
+		return initVal === true || initVal === 'true';
+	});
+	const [isUploadsVisible, setIsUploadsVisible] = useState<boolean>(() => {
+		const initVal = (storage.find(STORAGE.KEYS.IS_UPLOADS_VISIBLE) as boolean | string | null) ?? false;
+		return initVal === true || initVal === 'true';
+	});
 
-	function handleSetDarkModeEnabled(isEnabled: boolean) {
-		storage.set(STORAGE.KEYS.IS_DARK_MODE_ENABLED, JSON.stringify(isEnabled));
-		setIsDarkModeEnabled(isEnabled);
-	}
-
-	function handleSetSidebarVisible(isVisible: boolean) {
-		storage.set(STORAGE.KEYS.IS_SIDEBAR_VISIBLE, JSON.stringify(isVisible));
-		setIsSidebarVisible(isVisible);
-	}
-
-	function handleSetUploadsVisible(isVisible: boolean) {
-		storage.set(STORAGE.KEYS.IS_UPLOADS_VISIBLE, JSON.stringify(isVisible));
-		setIsUploadsVisible(isVisible);
-	}
-
-	function toggleDarkModeEnabled() {
+	const toggleDarkModeEnabled = useCallback(() => {
 		setIsDarkModeEnabled(!isDarkModeEnabled);
-	}
+	}, [isDarkModeEnabled]);
 
-	function toggleSidebarVisible() {
+	const toggleSidebarVisible = useCallback(() => {
 		setIsSidebarVisible(!isSidebarVisible);
-	}
+	}, [isSidebarVisible]);
 
-	function toggleUploadsVisible() {
+	const toggleUploadsVisible = useCallback(() => {
 		setIsUploadsVisible(!isUploadsVisible);
-	}
+	}, [isUploadsVisible]);
 
 	useEffect(() => {
 		if (isDarkModeEnabled) {
@@ -46,29 +49,41 @@ export function AppProvider({ children }: PropsWithChildren) {
 		} else {
 			document.documentElement.classList.remove('dark-mode');
 		}
-	}, [isDarkModeEnabled]);
+
+		const setOptions = { doUpdateSearchParams: true, doPreferSearchParam: true };
+		storage.set(STORAGE.KEYS.IS_DARK_MODE_ENABLED, JSON.stringify(isDarkModeEnabled), setOptions);
+	}, [isDarkModeEnabled, storage]);
 
 	useEffect(() => {
-		// TODO: Needs a cleanup
-		const darkMode = storage.parse(STORAGE.KEYS.IS_DARK_MODE_ENABLED, { doClearSearchParam: true }) as boolean;
-		devLog.debug(`Retrieved param 'isDarkModeEnabled': ${darkMode}`);
-		const sideBar = storage.parse(STORAGE.KEYS.IS_SIDEBAR_VISIBLE, { doClearSearchParam: true }) as boolean;
-		devLog.debug(`Retrieved param 'isSidebarVisible': ${sideBar}`);
-		setIsDarkModeEnabled(darkMode);
-		setIsSidebarVisible(sideBar);
-	}, [searchParams, setSearchParams, storage]);
+		const setOptions = { doUpdateSearchParams: true, doPreferSearchParam: true };
+		storage.set(STORAGE.KEYS.IS_SIDEBAR_VISIBLE, JSON.stringify(isSidebarVisible), setOptions);
+	}, [isSidebarVisible, storage]);
 
-	const value: AppContextType = {
+	useEffect(() => {
+		const setOptions = { doUpdateSearchParams: true, doPreferSearchParam: true };
+		storage.set(STORAGE.KEYS.IS_UPLOADS_VISIBLE, JSON.stringify(isUploadsVisible), setOptions);
+	}, [isUploadsVisible, storage]);
+
+	const value: AppContextType = useMemo(() => {
+		return {
+			isDarkModeEnabled,
+			isSidebarVisible,
+			isUploadsVisible,
+			setDarkModeEnabled: setIsDarkModeEnabled,
+			setSidebarVisible: setIsSidebarVisible,
+			setUploadsVisible: setIsUploadsVisible,
+			toggleDarkModeEnabled,
+			toggleSidebarVisible,
+			toggleUploadsVisible,
+		};
+	}, [
 		isDarkModeEnabled,
 		isSidebarVisible,
 		isUploadsVisible,
-		setDarkModeEnabled: handleSetDarkModeEnabled,
-		setSidebarVisible: handleSetSidebarVisible,
-		setUploadsVisible: handleSetUploadsVisible,
 		toggleDarkModeEnabled,
 		toggleSidebarVisible,
 		toggleUploadsVisible,
-	};
+	]);
 
 	return <AppContext value={value}>{children}</AppContext>;
 }

@@ -4,9 +4,9 @@ import { STORAGE, WEBSOCKET } from '../../shared/constant/constants.ts';
 import { UPLOAD_ERROR } from '../../shared/constant/uploadError.ts';
 import type { DatasetKey } from '../../shared/entity/Datasets.ts';
 import { devLog } from '../../shared/util/devLog.ts';
-import { useStorage } from '../../storage/context/useStorage.ts';
+import { useStorage } from '../../storage/context/StorageContext.ts';
 import useWebSocket from '../../websocket/useWebSocket.ts';
-import { useUpload } from '../context/uploadContext/useUpload.ts';
+import { useUpload } from '../context/uploadContext/UploadContext.ts';
 import type { AckMessage } from '../entity/message/incoming/AckMessage.ts';
 import type { ConfigMessage } from '../entity/message/incoming/ConfigMessage.ts';
 import type { ErrorMessage } from '../entity/message/incoming/ErrorMessage.ts';
@@ -375,7 +375,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 		const datasetKey = datasetRef.current;
 		if (datasetKey === null) throw new Error('No upload is currently active');
 
-		const uploads = storageCtx.parse(STORAGE.KEYS.PARTIAL_UPLOADS) as UploadState | null;
+		const uploads = storageCtx.find(STORAGE.KEYS.PARTIAL_UPLOADS) as UploadState | null;
 		if (uploads === null) return null;
 
 		return uploads[datasetKey] ?? null;
@@ -400,7 +400,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 		let errorMessage: string;
 		switch (code) {
 			case UPLOAD_ERROR.NOT_FOUND: {
-				const storedUploads = storageCtx.parse(STORAGE.KEYS.PARTIAL_UPLOADS) as UploadState;
+				const storedUploads = storageCtx.find(STORAGE.KEYS.PARTIAL_UPLOADS) as UploadState;
 				storedUploads[datasetKey] = undefined;
 				storageCtx.set(STORAGE.KEYS.PARTIAL_UPLOADS, JSON.stringify(storedUploads));
 
@@ -442,7 +442,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 
 		uploadCtx.add(datasetKey, upload);
 
-		const storedUploads = (storageCtx.parse(STORAGE.KEYS.PARTIAL_UPLOADS) ?? {}) as UploadState;
+		const storedUploads = (storageCtx.find(STORAGE.KEYS.PARTIAL_UPLOADS) ?? {}) as UploadState;
 		storedUploads[datasetKey] = upload;
 		storageCtx.set(STORAGE.KEYS.PARTIAL_UPLOADS, JSON.stringify(storedUploads));
 	}

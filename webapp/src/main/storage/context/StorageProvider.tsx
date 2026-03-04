@@ -1,41 +1,76 @@
-import type { PropsWithChildren } from 'react';
+import { useCallback, useMemo, useRef, type PropsWithChildren } from 'react';
 import { useSearchParams } from 'react-router';
 import { parseErrorMessage } from '../../shared/commonFunctions.ts';
 import { devLog } from '../../shared/util/devLog.ts';
-import { StorageContext, type StorageContextType } from './StorageContext.ts';
+import { StorageContext } from './StorageContext.ts';
 
-export interface StorageOptionProps {
-	/** Whether to clear a SearchParam if one exists with specified key. (default: `false`) */
-	doClearSearchParam?: boolean;
-	/** Whether to update LocalStorage if a SearchParam exists with specified key. (default: `true`) */
-	doOverwriteStorage?: boolean;
+export interface StorageContextType {
+	find: (key: string, options?: StorageFindProps) => unknown;
+	set: (key: string, value: string | null, options?: StorageSetProps) => void;
 }
+
+export interface StorageFindProps {
+	/** Whether to clear a SearchParam if one exists with a specified key. (default: `false`) */
+	doConsumeSearchParam?: boolean;
+	/** Whether to update LocalStorage if a SearchParam exists with a specified key. (default: `true`) */
+	doUpdateStorage?: boolean;
+}
+
+export interface StorageSetProps {
+	/** Whether to update SearchParams if one exists with a specified key. (default: `false`) */
+	doUpdateSearchParams?: boolean;
+	/** Whether to prefer a SearchParam if one exists with a specified key. If `doUpdateSearchParams` is `true`, the found
+	 * SearchParam will be deleted. (default: `false`) */
+	doPreferSearchParam?: boolean;
+}
+
+const defaultFindProps: StorageFindProps = { doConsumeSearchParam: false, doUpdateStorage: true };
+const defaultSetProps: StorageSetProps = { doUpdateSearchParams: false, doPreferSearchParam: false };
 
 export function StorageProvider({ children }: PropsWithChildren) {
 	const [searchParams, setSearchParams] = useSearchParams();
 
+	const isInitialised = useRef<boolean>(false);
+
 	/**
-	 * Function attempts to fetch the value pair for a specified key from URL SearchParams first, then from LocalStorage.
-	 * @return If found, the value. Otherwise, `null`.
+	 * Function attempts to get the value pair of a specified key from URL SearchParams first, then from LocalStorage.
+	 * @return A `string` if a SearchParam is found, `null` if no value is found, otherwise an `unknown`.
 	 */
-	function find(key: string, options: StorageOptionProps = { doClearSearchParam: false, doOverwriteStorage: true }) {
-		const searchParamsValue = searchParams.get(key);
-		if (searchParamsValue !== null) {
-			if (options.doClearSearchParam) {
-				searchParams.delete(key);
-				setSearchParams(searchParams);
+	const find = useCallback(
+		(key: string, options: StorageFindProps = defaultFindProps) => {
+			// First, attempt to get value from SearchParams
+			const searchParamsValue = searchParams.get(key);
+			if (searchParamsValue !== null) {
+				// Remove item from SearchParams if requested
+				if (options.doConsumeSearchParam) {
+					setSearchParams(
+						(prev) => {
+							prev.delete(key);
+							return prev;
+						},
+						{ replace: true }
+					);
+				}
+				// Update LocalStorage with retrieved value if requested
+				if (options.doUpdateStorage) {
+					window.localStorage.setItem(key, searchParamsValue);
+				}
+				return searchParamsValue;
 			}
-			if (options.doOverwriteStorage) {
-				window.localStorage.setItem(key, searchParamsValue);
+			// Second, attempt to parse value from LocalStorage
+			const localStorageValue = window.localStorage.getItem(key);
+			if (localStorageValue !== null) {
+				try {
+					return JSON.parse(localStorageValue) as unknown;
+				} catch (ex) {
+					devLog.error(`Failed to parse JSON from LocalStorage: ${parseErrorMessage(ex)}`);
+				}
 			}
-			return searchParamsValue;
-		}
-
-		const localStorageValue = window.localStorage.getItem(key);
-		if (localStorageValue !== null) return localStorageValue;
-
-		return null;
-	}
+			// Otherwise, return null
+			return null;
+		},
+		[searchParams, setSearchParams]
+	);
 
 	/**
 	 * Function updates a storage key with a specified value. If the value is `null`, the key is instead deleted.
@@ -43,46 +78,63 @@ export function StorageProvider({ children }: PropsWithChildren) {
 	 * @param value The new value.
 	 * @param doUpdateUrl Whether to update URL SearchParams. (default: `false`)
 	 */
-	function set(key: string, value: string | null, doUpdateUrl = false) {
-		const localStorage = window.localStorage;
+	const set = useCallback(
+		(key: string, value: string | null, options: StorageSetProps = defaultSetProps) => {
+			const localStorage = window.localStorage;
 
-		if (value !== null) {
-			// If value specified, update local storage
-			localStorage.setItem(key, value);
-			if (doUpdateUrl && searchParams.get(key) !== value) {
-				// If update url requested and value different from current, update search params
-				searchParams.set(key, value);
-				setSearchParams(searchParams);
-			}
-		} else {
-			// If null specified as value, remove item from local storage
-			localStorage.removeItem(key);
-			if (doUpdateUrl) {
-				// If update url requested, remove item from search params
-				searchParams.delete(key);
-				setSearchParams(searchParams);
-			}
-		}
-	}
-
-	function parse(
-		key: string,
-		options: StorageOptionProps = { doClearSearchParam: false, doOverwriteStorage: true }
-	): unknown {
-		const value = find(key, options);
-
-		try {
+			// If value specified, update LocalStorage
 			if (value !== null) {
-				return JSON.parse(value);
-			} else {
-				return null;
+				// If prefer SearchParams requested...
+				if (options.doPreferSearchParam) {
+					const searchParamsValue = searchParams.get(key);
+					// If value in SearchParams exists, update LocalStorage with it
+					if (searchParamsValue !== null) {
+						localStorage.setItem(key, searchParamsValue);
+						// If update SearchParams requested, delete value from SearchParams
+						if (options.doUpdateSearchParams) {
+							setSearchParams(
+								(prev) => {
+									prev.delete(key);
+									return prev;
+								},
+								{ replace: true }
+							);
+						}
+					} else {
+						localStorage.setItem(key, value);
+					}
+				} else {
+					localStorage.setItem(key, value);
+					// If update SearchParams requested, update value in SearchParams
+					if (options.doUpdateSearchParams && searchParams.get(key) !== value) {
+						setSearchParams(
+							(prev) => {
+								prev.set(key, value);
+								return prev;
+							},
+							{ replace: true }
+						);
+					}
+				}
 			}
-		} catch (ex) {
-			devLog.error(`Failed to parse JSON from LocalStorage: ${parseErrorMessage(ex)}`);
-		}
-	}
+			// Else (null), remove item from local storage
+			else {
+				localStorage.removeItem(key);
+				// If update SearchParams requested, delete value from SearchParams
+				if (options.doUpdateSearchParams) {
+					setSearchParams((prev) => {
+						prev.delete(key);
+						return prev;
+					});
+				}
+			}
+		},
+		[searchParams, setSearchParams]
+	);
 
-	const value: StorageContextType = { find, set, parse };
+	const value: StorageContextType = useMemo(() => {
+		return { find, set, isInitialised };
+	}, [find, set]);
 
 	return <StorageContext value={value}>{children}</StorageContext>;
 }

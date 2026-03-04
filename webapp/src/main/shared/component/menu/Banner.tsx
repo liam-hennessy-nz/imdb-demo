@@ -1,7 +1,7 @@
 import { ChevronDownIcon, ChevronUpIcon } from '@primereact/icons';
 import { Button } from '@primereact/ui/button';
 import { UploadPopover } from '../../../upload/component/popover/UploadPopover.tsx';
-import { useApp } from '../../context/AppContext/useApp.ts';
+import { useApp } from '../../context/AppContext/AppContext.ts';
 
 function Banner() {
 	const { isDarkModeEnabled, setDarkModeEnabled } = useApp();

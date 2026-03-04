@@ -2,11 +2,11 @@ import { PlusIcon } from '@primereact/icons';
 import type { FileUploadHandlerEvent, FileUploadRootInstance } from '@primereact/types/shared/fileupload';
 import { Button } from '@primereact/ui/button';
 import { FileUpload } from '@primereact/ui/fileupload';
-import { useUpload } from '../../../upload/context/uploadContext/useUpload.ts';
+import { useUpload } from '../../../upload/context/uploadContext/UploadContext.ts';
 import type { Upload } from '../../../upload/entity/Upload.ts';
 import { parseDatasetKey } from '../../../upload/service/UploadHelper.ts';
 import { parseErrorMessage } from '../../commonFunctions.ts';
-import { useApp } from '../../context/AppContext/useApp.ts';
+import { useApp } from '../../context/AppContext/AppContext.ts';
 import type { DatasetKey } from '../../entity/Datasets.ts';
 import { devLog } from '../../util/devLog.ts';
 

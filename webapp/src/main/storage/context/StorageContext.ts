@@ -1,10 +1,18 @@
-import { createContext } from 'react';
-import type { StorageOptionProps } from './StorageProvider.tsx';
+import { createContext, use } from 'react';
+import type { StorageContextType } from './StorageProvider.tsx';
 
-export interface StorageContextType {
-	find: (key: string, options?: StorageOptionProps) => string | null;
-	set: (key: string, value: string | null, doUpdateUrl?: boolean) => void;
-	parse: (key: string, options?: StorageOptionProps) => unknown;
-}
-
+/**
+ * Create context for {@link StorageProvider}.
+ */
 export const StorageContext = createContext<StorageContextType | undefined>(undefined);
+
+/**
+ * Hook for accessing {@link StorageContext}.
+ */
+export function useStorage() {
+	const context = use(StorageContext);
+
+	if (context === undefined) throw new Error('useStorage must be used within StorageProvider');
+
+	return context;
+}
