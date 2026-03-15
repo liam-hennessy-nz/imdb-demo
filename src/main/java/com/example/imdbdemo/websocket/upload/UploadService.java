@@ -89,7 +89,7 @@ public class UploadService extends AbstractWebSocketHandler {
 		}
 
 		// Create upload config
-		ConfigMessageDTO config = new ConfigMessageDTO(uuid, upload.getDatasetKey(), 0, upload.getChunkByteSize(), upload.getChunkAckInterval(), upload.getChunkInFlightMax());
+		ConfigMessageDTO config = new ConfigMessageDTO(uuid, 0, upload.getChunkByteSize(), upload.getChunkAckInterval(), upload.getChunkInFlightMax());
 
 		// Send config over WebSocket
 		sendMessage(session, uuid, config);
@@ -136,7 +136,7 @@ public class UploadService extends AbstractWebSocketHandler {
 		}
 
 		// Create upload config
-		ConfigMessageDTO cfg = new ConfigMessageDTO(uuid, upload.getDatasetKey(), chunkIndex, upload.getChunkByteSize(), upload.getChunkAckInterval(), upload.getChunkInFlightMax());
+		ConfigMessageDTO cfg = new ConfigMessageDTO(uuid, chunkIndex, upload.getChunkByteSize(), upload.getChunkAckInterval(), upload.getChunkInFlightMax());
 
 		// Send config over WebSocket
 		sendMessage(session, uuid, cfg);

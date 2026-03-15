@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, type PropsWithChildren } from 'react';
+import { useCallback, useMemo, type PropsWithChildren } from 'react';
 import { useSearchParams } from 'react-router';
 import { parseErrorMessage } from '../../shared/commonFunctions.ts';
 import { devLog } from '../../shared/util/devLog.ts';
@@ -6,31 +6,40 @@ import { StorageContext } from './StorageContext.ts';
 
 export interface StorageContextType {
 	find: (key: string, options?: StorageFindProps) => unknown;
-	set: (key: string, value: string | null, options?: StorageSetProps) => void;
+	set: (key: string, value: string, options?: StorageSetProps) => void;
+	remove: (key: string, options?: StorageRemoveProps) => void;
 }
 
 export interface StorageFindProps {
-	/** Whether to clear a SearchParam if one exists with a specified key. (default: `false`) */
-	doConsumeSearchParam?: boolean;
-	/** Whether to update LocalStorage if a SearchParam exists with a specified key. (default: `true`) */
-	doUpdateStorage?: boolean;
+	/** Whether to delete a SearchParam if one exists with a specified key. (default: `false`) */
+	doDeleteSearchParam?: boolean;
+	/** Only does something if `doPreferSearchParam` is `true`. Whether to update LocalStorage with the found
+	 * SearchParam value. (default: `true`) */
+	doUpdateLocalStorage?: boolean;
+	/** Whether to prefer a SearchParam if one exists with a specified key. If `doUpdateLocalStorage` is `true`, update
+	 * LocalStorage with the found SearchParam value. (default: `false`) */
+	doPreferSearchParam?: boolean;
 }
 
 export interface StorageSetProps {
-	/** Whether to update SearchParams if one exists with a specified key. (default: `false`) */
-	doUpdateSearchParams?: boolean;
-	/** Whether to prefer a SearchParam if one exists with a specified key. If `doUpdateSearchParams` is `true`, the found
+	/** Whether to update a SearchParam if one exists with a specified key. (default: `false`) */
+	doUpdateSearchParam?: boolean;
+	/** Whether to prefer a SearchParam if one exists with a specified key. If `doUpdateSearchParam` is `true`, the found
 	 * SearchParam will be deleted. (default: `false`) */
 	doPreferSearchParam?: boolean;
 }
 
-const defaultFindProps: StorageFindProps = { doConsumeSearchParam: false, doUpdateStorage: true };
-const defaultSetProps: StorageSetProps = { doUpdateSearchParams: false, doPreferSearchParam: false };
+export interface StorageRemoveProps {
+	/** Whether to delete a SearchParam if one exists with a specified key. (default: `false`) */
+	doDeleteSearchParam?: boolean;
+}
+
+const defaultFindProps: StorageFindProps = { doDeleteSearchParam: false, doPreferSearchParam: true };
+const defaultSetProps: StorageSetProps = { doUpdateSearchParam: false, doPreferSearchParam: false };
+const defaultRemoveProps: StorageRemoveProps = { doDeleteSearchParam: false };
 
 export function StorageProvider({ children }: PropsWithChildren) {
 	const [searchParams, setSearchParams] = useSearchParams();
-
-	const isInitialised = useRef<boolean>(false);
 
 	/**
 	 * Function attempts to get the value pair of a specified key from URL SearchParams first, then from LocalStorage.
@@ -42,7 +51,7 @@ export function StorageProvider({ children }: PropsWithChildren) {
 			const searchParamsValue = searchParams.get(key);
 			if (searchParamsValue !== null) {
 				// Remove item from SearchParams if requested
-				if (options.doConsumeSearchParam) {
+				if (options.doDeleteSearchParam) {
 					setSearchParams(
 						(prev) => {
 							prev.delete(key);
@@ -52,13 +61,13 @@ export function StorageProvider({ children }: PropsWithChildren) {
 					);
 				}
 				// Update LocalStorage with retrieved value if requested
-				if (options.doUpdateStorage) {
-					window.localStorage.setItem(key, searchParamsValue);
+				if (options.doPreferSearchParam) {
+					localStorage.setItem(key, searchParamsValue);
 				}
 				return searchParamsValue;
 			}
 			// Second, attempt to parse value from LocalStorage
-			const localStorageValue = window.localStorage.getItem(key);
+			const localStorageValue = localStorage.getItem(key);
 			if (localStorageValue !== null) {
 				try {
 					return JSON.parse(localStorageValue) as unknown;
@@ -79,62 +88,63 @@ export function StorageProvider({ children }: PropsWithChildren) {
 	 * @param doUpdateUrl Whether to update URL SearchParams. (default: `false`)
 	 */
 	const set = useCallback(
-		(key: string, value: string | null, options: StorageSetProps = defaultSetProps) => {
-			const localStorage = window.localStorage;
-
-			// If value specified, update LocalStorage
-			if (value !== null) {
-				// If prefer SearchParams requested...
-				if (options.doPreferSearchParam) {
-					const searchParamsValue = searchParams.get(key);
-					// If value in SearchParams exists, update LocalStorage with it
-					if (searchParamsValue !== null) {
-						localStorage.setItem(key, searchParamsValue);
-						// If update SearchParams requested, delete value from SearchParams
-						if (options.doUpdateSearchParams) {
-							setSearchParams(
-								(prev) => {
-									prev.delete(key);
-									return prev;
-								},
-								{ replace: true }
-							);
-						}
-					} else {
-						localStorage.setItem(key, value);
-					}
-				} else {
-					localStorage.setItem(key, value);
-					// If update SearchParams requested, update value in SearchParams
-					if (options.doUpdateSearchParams && searchParams.get(key) !== value) {
+		(key: string, value: string, options: StorageSetProps = defaultSetProps) => {
+			// If prefer SearchParams requested...
+			if (options.doPreferSearchParam) {
+				const searchParamsValue = searchParams.get(key);
+				// If value in SearchParams exists, update LocalStorage with it
+				if (searchParamsValue !== null) {
+					localStorage.setItem(key, searchParamsValue);
+					// If update SearchParams requested, delete value from SearchParams
+					if (options.doUpdateSearchParam) {
 						setSearchParams(
 							(prev) => {
-								prev.set(key, value);
+								prev.delete(key);
 								return prev;
 							},
 							{ replace: true }
 						);
 					}
+				} else {
+					localStorage.setItem(key, value);
 				}
-			}
-			// Else (null), remove item from local storage
-			else {
-				localStorage.removeItem(key);
-				// If update SearchParams requested, delete value from SearchParams
-				if (options.doUpdateSearchParams) {
-					setSearchParams((prev) => {
-						prev.delete(key);
-						return prev;
-					});
+			} else {
+				localStorage.setItem(key, value);
+				// If update SearchParams requested, update value in SearchParams
+				if (options.doUpdateSearchParam && searchParams.get(key) !== value) {
+					setSearchParams(
+						(prev) => {
+							prev.set(key, value);
+							return prev;
+						},
+						{ replace: true }
+					);
 				}
 			}
 		},
 		[searchParams, setSearchParams]
 	);
 
+	const remove = useCallback(
+		(key: string, options: StorageRemoveProps = defaultRemoveProps) => {
+			localStorage.removeItem(key);
+			// If update SearchParams requested, delete value from SearchParams
+			if (options.doDeleteSearchParam) {
+				setSearchParams(
+					(prev) => {
+						prev.delete(key);
+						return prev;
+					},
+					{ replace: true }
+				);
+			}
+		},
+		[setSearchParams]
+	);
+
 	const value: StorageContextType = useMemo(() => {
-		return { find, set, isInitialised };
-	}, [find, set]);
+		return { find, set, remove };
+	}, [find, set, remove]);
 
 	return <StorageContext value={value}>{children}</StorageContext>;
 }

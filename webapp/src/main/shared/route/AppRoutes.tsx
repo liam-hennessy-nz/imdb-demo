@@ -1,20 +1,20 @@
 import type { PropsWithChildren } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { Route, Routes } from 'react-router';
+import { ManageDatasetPage } from '../../dataset/ManageDatasetPage.tsx';
 import { HomePage } from '../../home/HomePage.tsx';
 import { parseError } from '../commonFunctions.ts';
-import ErrorDialog from '../component/dialog/ErrorDialog.tsx';
-import Documents from '../component/page/Documents.tsx';
-import { ManageDatasetPage } from '../component/page/ManageDatasetPage.tsx';
-import Other from '../component/page/Other.tsx';
-import TitlesPage from '../component/page/titles/TitlesPage.tsx';
+import { ErrorDialog } from '../component/dialog/ErrorDialog.tsx';
+import { Documents } from '../component/page/Documents.tsx';
+import { Other } from '../component/page/Other.tsx';
+import { TitlesPage } from '../component/page/titles/TitlesPage.tsx';
 
 /**
  * Functional component which returns {@link Routes} containing all routes for the app.
  * @param children Children components to sit below the Routes.
  * @constructor
  */
-function AppRoutes({ children }: PropsWithChildren) {
+export function AppRoutes({ children }: PropsWithChildren) {
 	/**
 	 * JSX function that will be displayed if child components fail.
 	 * @param error Prop of {@link FallbackProps} that contains a caught Error.
@@ -36,5 +36,3 @@ function AppRoutes({ children }: PropsWithChildren) {
 		</Routes>
 	);
 }
-
-export default AppRoutes;

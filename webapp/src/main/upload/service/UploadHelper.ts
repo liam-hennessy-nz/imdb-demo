@@ -2,6 +2,8 @@ import { parseErrorMessage } from '../../shared/commonFunctions.ts';
 import { DATASET_SNIPPET_SIZE_BYTES } from '../../shared/constant/constants.ts';
 import { DATASET_SCHEMA, type DatasetKey } from '../../shared/entity/Datasets.ts';
 import { readFileSnippet } from '../../shared/service/fileService.ts';
+import type { ConfigMessage } from '../entity/message/incoming/ConfigMessage.ts';
+import type { Upload } from '../entity/Upload.ts';
 
 /**
  * Function that attempts to parse a given File for a DatasetName.
@@ -46,4 +48,24 @@ function findDatasetKey(columnArray: string[]): DatasetKey | null {
 	}
 
 	return null;
+}
+
+/**
+ * Function that asserts an Upload object contains a ConfigMessage.
+ * @param upload The Upload object to assert.
+ */
+export function assertUploadHasConfig(upload: Upload | null): asserts upload is Upload & { config: ConfigMessage } {
+	if (upload?.config === undefined) throw new Error(`Upload does not contain a ConfigMessage`);
+}
+
+export function assertUploadIsNotNull(upload: Upload | null): asserts upload is Upload {
+	if (upload === null) throw new Error(`Upload is null`);
+}
+
+export function doesUploadFilesMatch(upload1: Upload, upload2: Upload): boolean {
+	return (
+		upload1.file.name === upload2.file.name &&
+		upload1.file.size === upload2.file.size &&
+		upload1.file.lastModified === upload2.file.lastModified
+	);
 }

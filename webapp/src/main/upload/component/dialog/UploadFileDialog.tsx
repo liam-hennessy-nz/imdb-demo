@@ -6,9 +6,9 @@ import { FileUpload } from '@primereact/ui/fileupload';
 import { parseErrorMessage } from '../../../shared/commonFunctions.ts';
 import type { DatasetKey } from '../../../shared/entity/Datasets.ts';
 import { devLog } from '../../../shared/util/devLog.ts';
-import { useUpload } from '../../context/uploadContext/UploadContext.ts';
 import type { Upload } from '../../entity/Upload.ts';
 import { parseDatasetKey } from '../../service/UploadHelper.ts';
+import { useUpload } from '../context/uploadContext/UploadContext.ts';
 
 interface UploadFileDialogProps {
 	visible: boolean;
@@ -33,11 +33,11 @@ export function UploadFileDialog(props: UploadFileDialogProps) {
 			return;
 		}
 		// Add new upload to UploadContext
-		const upload: Partial<Upload> = {
+		const upload: Upload = {
 			file: file,
 			info: { chunkAcks: {}, status: 'inactive' },
 		};
-		uploadCtx.add(datasetKey, upload);
+		uploadCtx.dispatch({ type: 'UPLOAD_ADDED', datasetKey, upload });
 
 		onHide();
 	}

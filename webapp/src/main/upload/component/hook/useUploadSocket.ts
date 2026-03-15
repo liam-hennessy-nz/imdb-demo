@@ -1,24 +1,26 @@
 import { useRef } from 'react';
-import { parseErrorMessage, sleep, waitForCondition } from '../../shared/commonFunctions.ts';
-import { STORAGE, WEBSOCKET } from '../../shared/constant/constants.ts';
-import { UPLOAD_ERROR } from '../../shared/constant/uploadError.ts';
-import type { DatasetKey } from '../../shared/entity/Datasets.ts';
-import { devLog } from '../../shared/util/devLog.ts';
-import { useStorage } from '../../storage/context/StorageContext.ts';
-import useWebSocket from '../../websocket/useWebSocket.ts';
+import { parseErrorMessage, sleep, waitForCondition } from '../../../shared/commonFunctions.ts';
+import { API } from '../../../shared/constant/api.ts';
+import { STORAGE, WEBSOCKET } from '../../../shared/constant/constants.ts';
+import { UPLOAD_ERROR } from '../../../shared/constant/uploadError.ts';
+import type { DatasetKey } from '../../../shared/entity/Datasets.ts';
+import { devLog } from '../../../shared/util/devLog.ts';
+import { useStorage } from '../../../storage/context/StorageContext.ts';
+import { useWebSocket } from '../../../websocket/useWebSocket.ts';
+import type { AckMessage } from '../../entity/message/incoming/AckMessage.ts';
+import type { ConfigMessage } from '../../entity/message/incoming/ConfigMessage.ts';
+import type { ErrorMessage } from '../../entity/message/incoming/ErrorMessage.ts';
+import type { IncomingMessage } from '../../entity/message/incoming/IncomingMessage.ts';
+import type { EofMessage } from '../../entity/message/outgoing/EofMessage.ts';
+import type { MetadataMessage } from '../../entity/message/outgoing/MetadataMessage.ts';
+import type { ResumeMessage } from '../../entity/message/outgoing/ResumeMessage.ts';
+import type { Upload } from '../../entity/Upload.ts';
+import type { UploadRecord } from '../../entity/UploadRecord.ts';
+import { assertUploadHasConfig, assertUploadIsNotNull, doesUploadFilesMatch } from '../../service/UploadHelper.ts';
 import { useUpload } from '../context/uploadContext/UploadContext.ts';
-import type { AckMessage } from '../entity/message/incoming/AckMessage.ts';
-import type { ConfigMessage } from '../entity/message/incoming/ConfigMessage.ts';
-import type { ErrorMessage } from '../entity/message/incoming/ErrorMessage.ts';
-import type { IncomingMessage } from '../entity/message/incoming/IncomingMessage.ts';
-import type { EofMessage } from '../entity/message/outgoing/EofMessage.ts';
-import type { MetadataMessage } from '../entity/message/outgoing/MetadataMessage.ts';
-import type { ResumeMessage } from '../entity/message/outgoing/ResumeMessage.ts';
-import type { Upload } from '../entity/Upload.ts';
-import type { UploadState } from '../entity/UploadState.ts';
 
 interface useUploadSocketProps {
-	url: string;
+	datasetKey: DatasetKey;
 	stageMaxAttempts?: number;
 	stageTimeoutMs?: number;
 	stagePollIntervalMs?: number;
@@ -37,9 +39,9 @@ interface UploadSocketState {
 	disconnect: () => void;
 }
 
-function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
+export function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 	const {
-		url,
+		datasetKey,
 		stageMaxAttempts = WEBSOCKET.STAGE.MAX_ATTEMPTS,
 		stageTimeoutMs = WEBSOCKET.STAGE.TIMEOUT_MS,
 		stagePollIntervalMs = WEBSOCKET.STAGE.POLL_INTERVAL_MS,
@@ -53,16 +55,17 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 
 	const storageCtx = useStorage();
 	const uploadCtx = useUpload();
-	const socketCtx = useWebSocket({ url, onMessage: handleMessage });
-	const datasetRef = useRef<DatasetKey | null>(null);
+	const ws = useWebSocket({ url: API.WEBSOCKET_UPLOAD_URL, onMessage: handleMessage });
 
-	async function waitForUploadConfig(datasetKey: DatasetKey, maxAttempts = doRetryOnStageFail ? stageMaxAttempts : 1) {
+	const selectedFile = useRef<File | null>(null);
+
+	async function waitForUploadConfig(maxAttempts = doRetryOnStageFail ? stageMaxAttempts : 1) {
 		// Predicates to use when waiting for upload config
 		function doResolve() {
 			return uploadCtx.find(datasetKey) !== null;
 		}
 		function doReject() {
-			if (socketCtx.wsRef.current?.readyState !== WebSocket.OPEN) {
+			if (ws.wsRef.current?.readyState !== WebSocket.OPEN) {
 				return new Error('Socket closed');
 			}
 			return null;
@@ -71,7 +74,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 		// Wait for upload config
 		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 			// If WebSocket clean closed, stop attempts
-			if (socketCtx.connectStatus === 'disconnected') {
+			if (ws.connectStatus === 'disconnected') {
 				return;
 			}
 
@@ -89,60 +92,46 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 		throw new Error(maxAttempts > 1 ? `Retry limit reached (${maxAttempts})` : 'Waiting for upload config failed');
 	}
 
-	async function stageDatasetFile(datasetKey: DatasetKey) {
-		const upload = findActiveUpload();
-		upload.info.status = 'staging';
+	async function stageDatasetFile() {
+		const upload = uploadCtx.find(datasetKey);
+		assertUploadIsNotNull(upload);
 
-		datasetRef.current = datasetKey;
+		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'staging' });
 
-		const storedUpload = findStoredUpload();
+		// Attempt to find partial upload in StorageContext
+		const storedUpload = (storageCtx.find(STORAGE.KEYS.DATASET_UPLOADS) as UploadRecord | null)?.[datasetKey];
+		// Clear stored upload (will be re-added when up-to-date config is received from backend)
+		uploadCtx.dispatch({ type: 'UPLOAD_REMOVED', datasetKey: datasetKey });
 
-		// If partial upload found, remove current config and send resume to continue upload to backend
-		if (storedUpload?.config !== undefined) {
-			uploadCtx.remove(datasetKey);
+		// If partial upload with config was found and selected file matches stored file...
+		if (storedUpload?.config !== undefined && doesUploadFilesMatch(storedUpload, upload)) {
+			devLog.info('Partial upload found, sending resume message...');
 			const resume: ResumeMessage = {
 				type: 'res',
 				uuid: storedUpload.config.uuid,
-			};
-
-			devLog.info('Partial upload found, sending resume message');
-			try {
-				await socketCtx.send(JSON.stringify(resume));
-			} catch (ex) {
-				upload.info.errorMessage = `Failed to send resume message: ${parseErrorMessage(ex)}`;
-				upload.info.status = 'stageError';
-				return;
-			}
-		}
-		// Else, no partial upload found, send metadata to initiate new upload to backend
-		else {
-			const metadata: MetadataMessage = {
-				type: 'meta',
-				datasetKey: datasetKey,
+				fileName: upload.file.name,
 				byteSize: upload.file.size,
 				lastModified: upload.file.lastModified,
 			};
-
-			devLog.info('No partial upload found, sending metadata message');
-			try {
-				await socketCtx.send(JSON.stringify(metadata));
-			} catch (ex) {
-				upload.info.errorMessage = `Failed to send metadata message: ${parseErrorMessage(ex)}`;
-				upload.info.status = 'stageError';
-				return;
-			}
+			await ws.send(JSON.stringify(resume));
+		}
+		// Else (no partial upload with config found or selected file does not match stored file)...
+		else {
+			devLog.info('No partial upload found, sending metadata message...');
+			const metadata: MetadataMessage = {
+				type: 'meta',
+				datasetKey: datasetKey,
+				fileName: upload.file.name,
+				byteSize: upload.file.size,
+				lastModified: upload.file.lastModified,
+			};
+			await ws.send(JSON.stringify(metadata));
 		}
 
 		// Wait for upload config response from backend
-		try {
-			await waitForUploadConfig(datasetKey);
-		} catch (ex) {
-			upload.info.errorMessage = `Failed to wait for incoming upload config: ${parseErrorMessage(ex)}`;
-			upload.info.status = 'stageError';
-			return;
-		}
+		await waitForUploadConfig();
 
-		upload.info.status = 'staged';
+		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'staged' });
 		devLog.info(`Dataset '${datasetKey}' was staged successfully`);
 	}
 
@@ -155,12 +144,12 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 	 * @pa
 	 */
 	async function sendDatasetFile() {
-		async function processFile(upload: Upload) {
+		async function processFile(upload: Upload & { config: ConfigMessage }, file: File) {
 			const totalChunks = Math.ceil(upload.file.size / upload.config.chunkByteSize);
 
 			// Process files in chunks
 			for (let i = upload.config.chunkIndex; i < totalChunks; i++) {
-				if (socketCtx.wsRef.current?.readyState !== WebSocket.OPEN) {
+				if (ws.wsRef.current?.readyState !== WebSocket.OPEN) {
 					throw new Error('WebSocket connection was closed while streaming file');
 				}
 				devLog.debug(`Streaming chunk [${i} / ${totalChunks - 1}]...`);
@@ -171,7 +160,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 				const end = Math.min(start + upload.config.chunkByteSize, upload.file.size);
 
 				// Get chunk data
-				const chunk = await upload.file.slice(start, end).arrayBuffer();
+				const chunk = await file.slice(start, end).arrayBuffer();
 
 				// Header to hold the chunk index (int size)
 				const header = new DataView(new ArrayBuffer(Uint32Array.BYTES_PER_ELEMENT));
@@ -198,7 +187,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 				return getUnackedChunkCount() === 0;
 			}
 			function doReject() {
-				if (socketCtx.wsRef.current?.readyState !== WebSocket.OPEN) {
+				if (ws.wsRef.current?.readyState !== WebSocket.OPEN) {
 					return new Error('Socket closed');
 				}
 				return null;
@@ -207,7 +196,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 			// Wait for all acks
 			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 				// If WebSocket clean closed, stop attempts
-				if (socketCtx.connectStatus === 'disconnected') {
+				if (ws.connectStatus === 'disconnected') {
 					return;
 				}
 
@@ -221,14 +210,14 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 			throw new Error(`Retry limit reached (${maxAttempts} / ${maxAttempts})`);
 		}
 
-		async function commitUpload(upload: Upload) {
+		async function commitUpload(upload: Upload & { config: ConfigMessage }) {
 			// Send EOF once all acks received to finish stream with backend
 			const eof: EofMessage = {
 				type: 'eof',
 				uuid: upload.config.uuid,
 			};
 			try {
-				await socketCtx.send(JSON.stringify(eof));
+				await ws.send(JSON.stringify(eof));
 			} catch (ex) {
 				throw new Error(`Failed to send EOF: ${parseErrorMessage(ex)}`);
 			}
@@ -242,14 +231,40 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 			}
 		}
 
-		const upload = findActiveUpload();
+		if (selectedFile.current === null) {
+			uploadCtx.dispatch({
+				type: 'ERROR_OCCURRED',
+				datasetKey: datasetKey,
+				errorMessage: 'No file selected',
+				status: 'uploadError',
+			});
+			return;
+		}
+
+		const upload = uploadCtx.find(datasetKey);
+		try {
+			assertUploadHasConfig(upload);
+		} catch (ex) {
+			uploadCtx.dispatch({
+				type: 'ERROR_OCCURRED',
+				datasetKey: datasetKey,
+				errorMessage: `Failed to begin commiting upload: ${parseErrorMessage(ex)}`,
+				status: 'uploadError',
+			});
+			return;
+		}
+
+		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'uploading' });
 
 		try {
-			upload.info.status = 'uploading';
-			await processFile(upload);
+			await processFile(upload, selectedFile.current);
 		} catch (ex) {
-			upload.info.status = 'uploadError';
-			upload.info.errorMessage = `Failed to process upload: ${parseErrorMessage(ex)}`;
+			uploadCtx.dispatch({
+				type: 'ERROR_OCCURRED',
+				datasetKey: datasetKey,
+				errorMessage: `Failed to process upload: ${parseErrorMessage(ex)}`,
+				status: 'uploadError',
+			});
 			disconnect();
 			return;
 		}
@@ -257,18 +272,27 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 		try {
 			await waitForAllAcks();
 		} catch (ex) {
-			upload.info.status = 'uploadError';
-			upload.info.errorMessage = `Failed to wait for all acks: ${parseErrorMessage(ex)}`;
+			uploadCtx.dispatch({
+				type: 'ERROR_OCCURRED',
+				datasetKey: datasetKey,
+				errorMessage: `Failed to wait for all acks: ${parseErrorMessage(ex)}`,
+				status: 'uploadError',
+			});
 			disconnect();
 			return;
 		}
 
+		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'processing' });
+
 		try {
-			upload.info.status = 'processing';
 			await commitUpload(upload);
 		} catch (ex) {
-			upload.info.status = 'uploadError';
-			upload.info.errorMessage = `Failed to commit upload: ${parseErrorMessage(ex)}`;
+			uploadCtx.dispatch({
+				type: 'ERROR_OCCURRED',
+				datasetKey: datasetKey,
+				errorMessage: `Failed to commit upload: ${parseErrorMessage(ex)}`,
+				status: 'uploadError',
+			});
 			disconnect();
 			return;
 		}
@@ -289,11 +313,22 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 		chunkIndex: number,
 		maxAttempts = doRetryOnChunkFail ? chunkMaxAttempts : 1
 	) {
-		const upload = findActiveUpload();
+		const upload = uploadCtx.find(datasetKey);
+		try {
+			assertUploadHasConfig(upload);
+		} catch (ex) {
+			uploadCtx.dispatch({
+				type: 'ERROR_OCCURRED',
+				datasetKey: datasetKey,
+				errorMessage: `Failed to send chunk: ${parseErrorMessage(ex)}`,
+				status: 'uploadError',
+			});
+			return;
+		}
 
 		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 			// If WebSocket clean closed, stop attempts
-			if (socketCtx.connectStatus === 'disconnected') {
+			if (ws.connectStatus === 'disconnected') {
 				return;
 			}
 
@@ -306,8 +341,8 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 			}
 
 			try {
-				await socketCtx.send(chunk, 1);
-				upload.info.chunkAcks[chunkIndex] = false;
+				await ws.send(chunk, 1);
+				uploadCtx.dispatch({ type: 'CHUNK_SENT', datasetKey: datasetKey, chunk: chunkIndex });
 				return;
 			} catch (ex) {
 				if (attempt < maxAttempts) {
@@ -341,68 +376,26 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 	}
 
 	/**
-	 * Helper function which attempts to retrieve a mapped upload from the UploadContext, given the {@link DatasetKey}
-	 * provided in props.
-	 * @returns A found Upload.
-	 * @throws Error if no mapped upload exists within the UploadContext.
-	 */
-	function findActiveUpload(): Upload {
-		function assertUpload(u: Partial<Upload>): asserts u is Upload {
-			if (u.file === undefined || u.config === undefined || u.info === undefined) {
-				throw new Error(`Upload is incomplete`);
-			}
-		}
-
-		const datasetKey = datasetRef.current;
-		if (datasetKey === null) throw new Error('No upload is currently active');
-
-		const upload = uploadCtx.find(datasetKey);
-		if (upload === null) {
-			throw new Error(`No upload was found in UploadContext for dataset '${datasetKey}'`);
-		}
-
-		assertUpload(upload);
-		return upload;
-	}
-
-	/**
-	 * Helper function which attempts to retrieve a mapped upload from the StorageContext, given the {@link DatasetKey}
-	 * provided in {@link datasetRef}.
-	 * @returns A found Upload.
-	 * @throws Error if no mapped upload exists within the StorageContext.
-	 */
-	function findStoredUpload(): Partial<Upload> | null {
-		const datasetKey = datasetRef.current;
-		if (datasetKey === null) throw new Error('No upload is currently active');
-
-		const uploads = storageCtx.find(STORAGE.KEYS.PARTIAL_UPLOADS) as UploadState | null;
-		if (uploads === null) return null;
-
-		return uploads[datasetKey] ?? null;
-	}
-
-	/**
 	 * Helper function which attempts to retrieve the unacked chunks count for a mapped upload in the UploadContext.
-	 * @returns The unacked chunk count.
-	 * @throws Error if no mapped upload exists within the UploadContext.
+	 * @returns The unacked chunk count. Will always be 0 if no upload is found.
 	 */
 	function getUnackedChunkCount() {
-		const upload = findActiveUpload();
+		const upload = uploadCtx.find(datasetKey);
+		if (upload === null) return 0;
+
 		return Object.values(upload.info.chunkAcks).filter((chunk) => !chunk).length;
 	}
 
 	function handleErrorMessage(err: ErrorMessage) {
 		const { code, reason } = err;
 
-		const upload = findActiveUpload();
-		const datasetKey = upload.config.datasetKey;
+		const upload = uploadCtx.find(datasetKey);
+		assertUploadHasConfig(upload);
 
 		let errorMessage: string;
 		switch (code) {
 			case UPLOAD_ERROR.NOT_FOUND: {
-				const storedUploads = storageCtx.find(STORAGE.KEYS.PARTIAL_UPLOADS) as UploadState;
-				storedUploads[datasetKey] = undefined;
-				storageCtx.set(STORAGE.KEYS.PARTIAL_UPLOADS, JSON.stringify(storedUploads));
+				uploadCtx.dispatch({ type: 'UPLOAD_REMOVED', datasetKey: datasetKey });
 
 				errorMessage = `Upload of dataset '${datasetKey}' could not be resumed: ${reason}`;
 				devLog.info(errorMessage);
@@ -425,41 +418,39 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 			}
 		}
 
-		upload.info.errorMessage = errorMessage;
+		uploadCtx.dispatch({
+			type: 'ERROR_OCCURRED',
+			datasetKey: datasetKey,
+			errorMessage: errorMessage,
+			status: 'uploadError',
+		});
 		onError?.(errorMessage);
 		disconnect();
 	}
 
 	function handleConfigMessage(cfg: ConfigMessage) {
-		const upload: Partial<Upload> = {
-			config: cfg,
-			info: {
-				chunkAcks: {},
-				status: 'staged',
-			},
-		};
-		const datasetKey = cfg.datasetKey;
+		const upload = uploadCtx.find(datasetKey);
+		assertUploadHasConfig(upload);
 
-		uploadCtx.add(datasetKey, upload);
-
-		const storedUploads = (storageCtx.find(STORAGE.KEYS.PARTIAL_UPLOADS) ?? {}) as UploadState;
-		storedUploads[datasetKey] = upload;
-		storageCtx.set(STORAGE.KEYS.PARTIAL_UPLOADS, JSON.stringify(storedUploads));
+		uploadCtx.dispatch({ type: 'CONFIG_UPDATED', datasetKey: datasetKey, config: cfg });
 	}
 
 	function handleAckMessage(ack: AckMessage) {
 		const { chunkIndex } = ack;
 
-		const upload = findActiveUpload();
+		const upload = uploadCtx.find(datasetKey);
+		assertUploadHasConfig(upload);
 
 		for (let i = chunkIndex - upload.config.chunkAckInterval; i < chunkIndex + upload.config.chunkAckInterval; i++) {
-			upload.info.chunkAcks = { ...upload.info.chunkAcks, [i]: true };
+			uploadCtx.dispatch({ type: 'CHUNK_ACKED', datasetKey: datasetKey, chunk: i });
 		}
 	}
 
 	function handleEndMessage() {
-		const upload = findActiveUpload();
-		upload.info.status = 'completed';
+		const upload = uploadCtx.find(datasetKey);
+		assertUploadHasConfig(upload);
+
+		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'completed' });
 	}
 
 	/**
@@ -472,8 +463,6 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 	 * the UploadContext.
 	 */
 	function handleMessage(ev: MessageEvent<string>) {
-		const upload = findActiveUpload();
-
 		const incomingMessage = parseIncomingMessage(ev.data);
 		devLog.debug(`Message received:`, incomingMessage);
 
@@ -482,7 +471,7 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 			handleErrorMessage(incomingMessage as ErrorMessage);
 		}
 		// Message received while upload does not exist in UploadContext
-		else if (uploadCtx.find(upload.config.datasetKey) === null) {
+		else if (uploadCtx.find(datasetKey) === null) {
 			// Config message, update contexts
 			if (incomingMessage.type === 'cfg') {
 				handleConfigMessage(incomingMessage as ConfigMessage);
@@ -510,10 +499,8 @@ function useUploadSocket(props: useUploadSocketProps): UploadSocketState {
 	}
 
 	function disconnect() {
-		socketCtx.disconnect();
+		ws.disconnect();
 	}
 
 	return { stageDatasetFile, sendDatasetFile, sendChunk, disconnect };
 }
-
-export default useUploadSocket;

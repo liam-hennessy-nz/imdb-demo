@@ -29,7 +29,7 @@ export const STORAGE = {
 		IS_DARK_MODE_ENABLED: 'isDarkModeEnabled',
 		IS_SIDEBAR_VISIBLE: 'isSidebarVisible',
 		IS_UPLOADS_VISIBLE: 'isUploadsVisible',
-		PARTIAL_UPLOADS: 'partialUploads',
+		DATASET_UPLOADS: 'datasetUploads',
 	},
 } as const;
 

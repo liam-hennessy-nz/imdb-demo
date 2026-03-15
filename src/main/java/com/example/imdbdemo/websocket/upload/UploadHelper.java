@@ -114,7 +114,13 @@ public class UploadHelper {
 	}
 
 	public UploadSessionDTO generateNewUploadSession(Upload upload, FileChannel channel) {
-		return UploadSessionDTO.builder().upload(upload).isWorkerRunning(new AtomicBoolean(false)).isEofReceived(new AtomicBoolean(false)).chunkQueue(new ArrayBlockingQueue<>(appProps.ul().queueSize())).fileChannel(channel).build();
+		return UploadSessionDTO.builder()
+			.upload(upload)
+			.isWorkerRunning(new AtomicBoolean(false))
+			.isEofReceived(new AtomicBoolean(false))
+			.chunkQueue(new ArrayBlockingQueue<>(appProps.ul().queueSize()))
+			.fileChannel(channel)
+			.build();
 	}
 
 	public void copyFromFileToDatabase(@NonNull Path filePath, @NonNull String copySql) {

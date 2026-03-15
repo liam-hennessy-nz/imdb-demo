@@ -4,15 +4,15 @@ import { Menu } from '@primereact/ui/menu';
 import { Link } from 'react-router';
 import { useApp } from '../../context/AppContext/AppContext.ts';
 
-function MainMenu() {
-	const { isSidebarVisible, toggleSidebarVisible } = useApp();
+export function SideMenu() {
+	const { isSideMenuExpanded, toggleSideMenuExpanded } = useApp();
 
 	return (
 		<div className="flex flex-1 overflow-hidden whitespace-nowrap">
 			<div className="flex flex-1 flex-col border-r border-surface-600 overflow-hidden whitespace-nowrap">
 				<div className="ml-auto mr-2 my-2">
-					<Button className="w-8 h-8" onClick={toggleSidebarVisible}>
-						{isSidebarVisible ? <AngleDoubleLeftIcon /> : <AngleDoubleRightIcon />}
+					<Button className="w-8 h-8" onClick={toggleSideMenuExpanded}>
+						{isSideMenuExpanded ? <AngleDoubleLeftIcon /> : <AngleDoubleRightIcon />}
 					</Button>
 				</div>
 				<Menu.Root>
@@ -42,5 +42,3 @@ function MainMenu() {
 		</div>
 	);
 }
-
-export default MainMenu;

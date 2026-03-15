@@ -5,13 +5,13 @@ import { AppContext } from './AppContext.ts';
 
 export interface AppContextType {
 	isDarkModeEnabled: boolean;
-	isSidebarVisible: boolean;
+	isSideMenuExpanded: boolean;
 	isUploadsVisible: boolean;
 	setDarkModeEnabled: (isEnabled: boolean) => void;
-	setSidebarVisible: (isVisible: boolean) => void;
+	setSideMenuExpanded: (isVisible: boolean) => void;
 	setUploadsVisible: (isVisible: boolean) => void;
 	toggleDarkModeEnabled: () => void;
-	toggleSidebarVisible: () => void;
+	toggleSideMenuExpanded: () => void;
 	toggleUploadsVisible: () => void;
 }
 
@@ -19,27 +19,25 @@ export function AppProvider({ children }: PropsWithChildren) {
 	const storage = useStorage();
 
 	const [isDarkModeEnabled, setIsDarkModeEnabled] = useState<boolean>(() => {
-		const initVal = (storage.find(STORAGE.KEYS.IS_DARK_MODE_ENABLED) as boolean | string | null) ?? false;
+		const defaultVal = matchMedia('(prefers-color-scheme: dark)').matches;
+		const initVal = (storage.find(STORAGE.KEYS.IS_DARK_MODE_ENABLED) as boolean | string | null) ?? defaultVal;
 		return initVal === true || initVal === 'true';
 	});
-	const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(() => {
+	const [isSideMenuExpanded, setIsSideMenuExpanded] = useState<boolean>(() => {
 		const initVal = (storage.find(STORAGE.KEYS.IS_SIDEBAR_VISIBLE) as boolean | string | null) ?? true;
 		return initVal === true || initVal === 'true';
 	});
-	const [isUploadsVisible, setIsUploadsVisible] = useState<boolean>(() => {
-		const initVal = (storage.find(STORAGE.KEYS.IS_UPLOADS_VISIBLE) as boolean | string | null) ?? false;
-		return initVal === true || initVal === 'true';
-	});
+	const [isUploadsVisible, setIsUploadsVisible] = useState<boolean>(false);
 
-	const toggleDarkModeEnabled = useCallback(() => {
+	const handleToggleIsDarkModeEnabled = useCallback(() => {
 		setIsDarkModeEnabled(!isDarkModeEnabled);
 	}, [isDarkModeEnabled]);
 
-	const toggleSidebarVisible = useCallback(() => {
-		setIsSidebarVisible(!isSidebarVisible);
-	}, [isSidebarVisible]);
+	const handleToggleIsSideMenuExpanded = useCallback(() => {
+		setIsSideMenuExpanded(!isSideMenuExpanded);
+	}, [isSideMenuExpanded]);
 
-	const toggleUploadsVisible = useCallback(() => {
+	const handleToggleIsUploadsVisible = useCallback(() => {
 		setIsUploadsVisible(!isUploadsVisible);
 	}, [isUploadsVisible]);
 
@@ -50,39 +48,38 @@ export function AppProvider({ children }: PropsWithChildren) {
 			document.documentElement.classList.remove('dark-mode');
 		}
 
-		const setOptions = { doUpdateSearchParams: true, doPreferSearchParam: true };
-		storage.set(STORAGE.KEYS.IS_DARK_MODE_ENABLED, JSON.stringify(isDarkModeEnabled), setOptions);
+		storage.set(STORAGE.KEYS.IS_DARK_MODE_ENABLED, JSON.stringify(isDarkModeEnabled), {
+			doUpdateSearchParam: true,
+			doPreferSearchParam: true,
+		});
 	}, [isDarkModeEnabled, storage]);
 
 	useEffect(() => {
-		const setOptions = { doUpdateSearchParams: true, doPreferSearchParam: true };
-		storage.set(STORAGE.KEYS.IS_SIDEBAR_VISIBLE, JSON.stringify(isSidebarVisible), setOptions);
-	}, [isSidebarVisible, storage]);
-
-	useEffect(() => {
-		const setOptions = { doUpdateSearchParams: true, doPreferSearchParam: true };
-		storage.set(STORAGE.KEYS.IS_UPLOADS_VISIBLE, JSON.stringify(isUploadsVisible), setOptions);
-	}, [isUploadsVisible, storage]);
+		storage.set(STORAGE.KEYS.IS_SIDEBAR_VISIBLE, JSON.stringify(isSideMenuExpanded), {
+			doUpdateSearchParam: true,
+			doPreferSearchParam: true,
+		});
+	}, [isSideMenuExpanded, storage]);
 
 	const value: AppContextType = useMemo(() => {
 		return {
 			isDarkModeEnabled,
-			isSidebarVisible,
+			isSideMenuExpanded,
 			isUploadsVisible,
 			setDarkModeEnabled: setIsDarkModeEnabled,
-			setSidebarVisible: setIsSidebarVisible,
+			setSideMenuExpanded: setIsSideMenuExpanded,
 			setUploadsVisible: setIsUploadsVisible,
-			toggleDarkModeEnabled,
-			toggleSidebarVisible,
-			toggleUploadsVisible,
+			toggleDarkModeEnabled: handleToggleIsDarkModeEnabled,
+			toggleSideMenuExpanded: handleToggleIsSideMenuExpanded,
+			toggleUploadsVisible: handleToggleIsUploadsVisible,
 		};
 	}, [
 		isDarkModeEnabled,
-		isSidebarVisible,
+		isSideMenuExpanded,
 		isUploadsVisible,
-		toggleDarkModeEnabled,
-		toggleSidebarVisible,
-		toggleUploadsVisible,
+		handleToggleIsDarkModeEnabled,
+		handleToggleIsSideMenuExpanded,
+		handleToggleIsUploadsVisible,
 	]);
 
 	return <AppContext value={value}>{children}</AppContext>;

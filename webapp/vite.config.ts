@@ -2,7 +2,9 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import visualizer from 'rollup-plugin-visualizer';
 import { defineConfig, loadEnv } from 'vite';
+import babel from 'vite-plugin-babel';
 import checker from 'vite-plugin-checker';
 
 // https://vite.dev/config/
@@ -28,9 +30,10 @@ export default defineConfig(({ mode }) => {
 				: undefined,
 		},
 		plugins: [
-			react({
-				babel: {
-					plugins: [['babel-plugin-react-compiler']],
+			react(),
+			babel({
+				babelConfig: {
+					plugins: ['babel-plugin-react-compiler'],
 				},
 			}),
 			checker({
@@ -41,6 +44,7 @@ export default defineConfig(({ mode }) => {
 				},
 			}),
 			tailwindcss(),
+			visualizer(),
 		],
 	};
 });

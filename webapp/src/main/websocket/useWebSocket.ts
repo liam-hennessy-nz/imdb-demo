@@ -27,7 +27,7 @@ interface WebSocketState {
 	connectStatus: ConnectStatus;
 }
 
-function useWebSocket(props: useWebSocketProps): WebSocketState {
+export function useWebSocket(props: useWebSocketProps): WebSocketState {
 	const {
 		url,
 		connectMaxAttempts = WEBSOCKET.CONNECT.MAX_ATTEMPTS,
@@ -193,5 +193,3 @@ function useWebSocket(props: useWebSocketProps): WebSocketState {
 
 	return { wsRef, connect, send, disconnect, connectStatus };
 }
-
-export default useWebSocket;

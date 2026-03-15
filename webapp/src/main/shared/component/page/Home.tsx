@@ -1,4 +1,4 @@
-function Home() {
+export function Home() {
 	/*	const testData = [
 		{
 			id: 1,
@@ -34,5 +34,3 @@ function Home() {
 			<Column field="updatedAt" header="Updated At" />
 		</DataTable>*/
 }
-
-export default Home;

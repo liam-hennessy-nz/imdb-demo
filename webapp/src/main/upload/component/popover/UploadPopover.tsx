@@ -1,16 +1,15 @@
 import { ChevronDownIcon, ChevronUpIcon } from '@primereact/icons';
 import { Button } from '@primereact/ui/button';
 import { Popover } from '@primereact/ui/popover';
-import { useEffect, useState } from 'react';
 import { useApp } from '../../../shared/context/AppContext/AppContext.ts';
-import { useUpload } from '../../context/uploadContext/UploadContext.ts';
-import type { UploadState } from '../../entity/UploadState.ts';
+import type { DatasetKey } from '../../../shared/entity/Datasets.ts';
+import type { Upload } from '../../entity/Upload.ts';
+import { useUpload } from '../context/uploadContext/UploadContext.ts';
+import { UploadItem } from './UploadItem.tsx';
 
 export function UploadPopover() {
 	const { isUploadsVisible, setUploadsVisible } = useApp();
 	const uploadCtx = useUpload();
-
-	const [uploadState, setUploadState] = useState<UploadState>({} as UploadState);
 
 	function handleClose() {
 		setUploadsVisible(false);
@@ -19,18 +18,6 @@ export function UploadPopover() {
 	function handleUploadsClick() {
 		setUploadsVisible(!isUploadsVisible);
 	}
-
-	useEffect(() => {
-		if (!isUploadsVisible) return;
-
-		const interval = setInterval(() => {
-			// TODO: Complete this
-			setUploadState(uploadCtx.uploadStatesRef.current);
-		}, 50);
-		return () => {
-			clearInterval(interval);
-		};
-	}, [isUploadsVisible, uploadCtx.uploadStatesRef]);
 
 	return (
 		<Popover.Root open={isUploadsVisible} onHide={handleClose}>
@@ -43,9 +30,13 @@ export function UploadPopover() {
 				<Popover.Positioner side="bottom" align="end" sideOffset={8}>
 					<Popover.Popup>
 						<Popover.Content className="flex flex-col w-80">
-							{Object.values(uploadState).map((value, index) => {
-								const key = `upload-${index}`;
-								return <div key={key}>{value?.file?.name ?? 'Unknown'}</div>;
+							<div className="flex flex-1 mb-2">
+								<div className="flex flex-1">File</div>
+								<div className="flex ml-auto">Status</div>
+							</div>
+							{(Object.entries(uploadCtx.uploads) as [DatasetKey, Upload][]).map(([datasetKey, upload]) => {
+								const key = `upload_item-${datasetKey}`;
+								return <UploadItem key={key} datasetKey={datasetKey} upload={upload} />;
 							})}
 						</Popover.Content>
 						<Popover.Close></Popover.Close>

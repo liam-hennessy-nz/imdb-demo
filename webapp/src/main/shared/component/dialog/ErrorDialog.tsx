@@ -4,7 +4,7 @@ interface ErrorDialogProps {
 	error: Error;
 }
 
-function ErrorDialog({ error }: ErrorDialogProps) {
+export function ErrorDialog({ error }: ErrorDialogProps) {
 	return (
 		<div className="flex justify-center">
 			<Dialog.Root defaultOpen modal dismissableMask>
@@ -26,5 +26,3 @@ function ErrorDialog({ error }: ErrorDialogProps) {
 		</div>
 	);
 }
-
-export default ErrorDialog;

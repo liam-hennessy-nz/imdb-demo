@@ -2,11 +2,15 @@ import type { ConfigMessage } from './message/incoming/ConfigMessage.ts';
 import type { UploadStatus } from './UploadStatus.ts';
 
 export interface Upload {
-	file: File;
-	config: ConfigMessage;
+	file: {
+		name: string;
+		size: number;
+		lastModified: number;
+	};
 	info: {
-		chunkAcks: Record<number, boolean | undefined>;
 		status: UploadStatus;
+		chunkAcks: Partial<Record<number, boolean>>;
 		errorMessage?: string;
 	};
+	config?: ConfigMessage;
 }

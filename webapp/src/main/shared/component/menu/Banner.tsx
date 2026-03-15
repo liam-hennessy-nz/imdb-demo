@@ -3,7 +3,7 @@ import { Button } from '@primereact/ui/button';
 import { UploadPopover } from '../../../upload/component/popover/UploadPopover.tsx';
 import { useApp } from '../../context/AppContext/AppContext.ts';
 
-function Banner() {
+export function Banner() {
 	const { isDarkModeEnabled, setDarkModeEnabled } = useApp();
 
 	function handleDarkModeClick() {
@@ -22,5 +22,3 @@ function Banner() {
 		</div>
 	);
 }
-
-export default Banner;
