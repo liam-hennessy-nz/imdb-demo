@@ -1,43 +1,43 @@
 import axios, { type AxiosRequestConfig } from 'axios';
-import { parseErrorMessage } from '../commonFunctions.ts';
-import { API } from '../constant/api.ts';
+import { ENDPOINT } from '../constant/endpoint.ts';
+import { newErrorWrap, parseErrorMessage } from '../util/commonFunctions.ts';
 
 export async function GET<T>(path: string) {
 	try {
-		return (await axios.get<T>(`${API.BASE_URL}/${path}`)).data;
+		return (await axios.get<T>(`${ENDPOINT.API}/${path}`)).data;
 	} catch (ex) {
-		throw new Error(parseAxiosError(ex));
+		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
 	}
 }
 
 export async function POST<T>(path: string, data?: unknown, config?: AxiosRequestConfig) {
 	try {
-		return (await axios.post<T>(`${API.BASE_URL}/${path}`, data, config)).data;
+		return (await axios.post<T>(`${ENDPOINT.API}/${path}`, data, config)).data;
 	} catch (ex) {
-		throw new Error(parseAxiosError(ex));
+		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
 	}
 }
 
 export async function PUT<T>(path: string, data?: unknown) {
 	try {
-		return (await axios.put<T>(`${API.BASE_URL}/${path}`, data)).data;
+		return (await axios.put<T>(`${ENDPOINT.API}/${path}`, data)).data;
 	} catch (ex) {
-		throw new Error(parseAxiosError(ex));
+		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
 	}
 }
 
 export async function DELETE(path: string) {
 	try {
-		await axios.delete(`${API.BASE_URL}/${path}`);
+		await axios.delete(`${ENDPOINT.API}/${path}`);
 	} catch (ex) {
-		throw new Error(parseAxiosError(ex));
+		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
 	}
 }
 
-function parseAxiosError(ex: unknown) {
+function parseAxiosErrorMessage(ex: unknown) {
 	if (axios.isAxiosError(ex)) {
 		const status = ex.response !== undefined ? ` [${ex.response.status.toString()}]` : '';
-		return `Axios error ${status}: ${ex.message !== '' ? ex.message : 'Unknown error'}`;
+		return `Axios error${status}: ${ex.message !== '' ? ex.message : 'Unknown error'}`;
 	} else {
 		return parseErrorMessage(ex);
 	}

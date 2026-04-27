@@ -1,27 +1,25 @@
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import { Outlet } from 'react-router';
-import { Banner } from './main/shared/component/menu/Banner.tsx';
-import { SideMenu } from './main/shared/component/menu/SideMenu.tsx';
-import { useApp } from './main/shared/context/AppContext/AppContext.ts';
-import { AppRoutes } from './main/shared/route/AppRoutes.tsx';
+import { MenuBar } from './main/app/MenuBar.tsx';
+import { MenuDrawer } from './main/app/MenuDrawer.tsx';
+import { UploadDrawer } from './main/upload/UploadDrawer.tsx';
 
 export function App() {
-	const { isSideMenuExpanded } = useApp();
-
 	return (
-		<AppRoutes>
-			<div className="flex flex-col w-screen h-screen">
-				<div className="flex h-15">
-					<Banner />
-				</div>
-				<div className="flex flex-1">
-					<div className={`flex ${isSideMenuExpanded ? 'w-60' : 'w-12'} transition-[width] duration-500 ease-in-out`}>
-						<SideMenu />
-					</div>
-					<div className="flex flex-1 p-4">
-						<Outlet />
-					</div>
-				</div>
-			</div>
-		</AppRoutes>
+		<Box sx={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
+			<Stack sx={{ flex: 1 }}>
+				<Box sx={{ display: 'flex' }}>
+					<MenuBar />
+				</Box>
+
+				<Box component="main" sx={{ display: 'flex', flex: 1, alignItems: 'start', justifyContent: 'start', p: 2 }}>
+					<Outlet />
+				</Box>
+			</Stack>
+
+			<MenuDrawer />
+			<UploadDrawer />
+		</Box>
 	);
 }

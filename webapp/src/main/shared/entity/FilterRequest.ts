@@ -20,7 +20,7 @@ export type SortType = Partial<Record<string, SortConstraint>>;
 export type FilterType = Partial<Record<string, FilterConstraint>>;
 
 export interface FilterRequest {
-	page?: number;
+	number?: number;
 	size?: number;
 	sort?: SortType;
 	filter?: FilterType;

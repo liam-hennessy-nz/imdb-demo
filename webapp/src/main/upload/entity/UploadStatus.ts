@@ -1,3 +1,3 @@
-import type { UPLOAD_STATUS } from '../../shared/constant/uploadStatus.ts';
+import type { UPLOAD_UI_CONFIG } from './UploadUiConfig.ts';
 
-export type UploadStatus = keyof typeof UPLOAD_STATUS;
+export type UploadStatus = keyof typeof UPLOAD_UI_CONFIG;

@@ -63,7 +63,17 @@ public class UploadService extends AbstractWebSocketHandler {
 		// TODO: validate meta
 
 		// Add upload to database
-		Upload upload = Upload.builder().id(uuid).datasetKey(meta.datasetKey()).createdDate(Instant.now()).chunkByteSize(appProps.ws().chunk().byteSize()).chunkAckInterval(appProps.ws().chunk().ackInterval()).chunkInFlightMax(appProps.ws().chunk().inFlightMax()).byteSize(meta.byteSize()).lastModified(meta.lastModified()).build();
+		Upload upload = Upload.builder()
+			.id(uuid)
+			.datasetKey(meta.datasetKey())
+			.createdDate(Instant.now())
+			.chunkByteSize(appProps.ws().chunk().byteSize())
+			.chunkAckInterval(appProps.ws().chunk().ackInterval())
+			.chunkInFlightMax(appProps.ws().chunk().inFlightMax())
+			.fileName(meta.fileName())
+			.byteSize(meta.byteSize())
+			.lastModified(meta.lastModified())
+			.build();
 		uploadRepository.save(upload);
 
 		// Ensure temp upload directory exists
@@ -145,7 +155,7 @@ public class UploadService extends AbstractWebSocketHandler {
 	public void commitUpload(@NonNull WebSocketSession session, @NonNull EofMessageDTO eof) {
 		// Retrieve existing UUID of this partial upload
 		UUID uuid = eof.uuid();
-		uploadHelper.logInfo(uuid, "EOF received, beginning COPY");
+		uploadHelper.logInfo(uuid, "Received 'EOF' message");
 
 		// Check session still exists in memory
 		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() -> new UploadNotFoundException(uuid, "Upload session was not found in memory"));
@@ -160,7 +170,7 @@ public class UploadService extends AbstractWebSocketHandler {
 		);
 
 		try {
-			uploadHelper.copyFromFileToDatabase(path, copySql);
+			uploadHelper.copyFromFileToDatabase(uuid, path, copySql);
 		} catch (UploadException ex) {
 			throw new UploadException(uuid, "Failed to commit upload to database", ex);
 		}

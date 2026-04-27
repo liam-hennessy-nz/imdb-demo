@@ -40,6 +40,9 @@ public class Upload {
 	private int chunkInFlightMax;
 	@Column
 	@NotNull
+	private String fileName;
+	@Column
+	@NotNull
 	private long byteSize;
 	@Column
 	@NotNull

@@ -1,10 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
+import babel from '@rolldown/plugin-babel';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import visualizer from 'rollup-plugin-visualizer';
 import { defineConfig, loadEnv } from 'vite';
-import babel from 'vite-plugin-babel';
 import checker from 'vite-plugin-checker';
 
 // https://vite.dev/config/
@@ -32,9 +31,7 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			react(),
 			babel({
-				babelConfig: {
-					plugins: ['babel-plugin-react-compiler'],
-				},
+				presets: [reactCompilerPreset()],
 			}),
 			checker({
 				typescript: true,
@@ -42,9 +39,14 @@ export default defineConfig(({ mode }) => {
 					lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
 					useFlatConfig: true,
 				},
+				overlay: {
+					initialIsOpen: 'error',
+				},
 			}),
-			tailwindcss(),
-			visualizer(),
+			visualizer({
+				filename: './dist/stats.html',
+				open: true,
+			}),
 		],
 	};
 });

@@ -6,7 +6,7 @@ import java.util.Map;
 
 @Data
 public class PageRequestDTO {
-	private int page;
+	private int number;
 	private int size;
 	private Map<String, Integer> sort;
 	private Map<String, FilterConstraint> filter;

@@ -1,7 +1,8 @@
-import type { DatasetDef, TypeFromSchema } from '../../shared/entity/Datasets.ts';
+import type { DatasetDef, TypeFromSchema } from '../../dataset/entity/Datasets.ts';
 
 export const RAW_TITLE_BASIC_SCHEMA = {
 	column: {
+		id: { type: 'number', label: 'ID' },
 		tconst: { type: 'string', label: 'TConst' },
 		titleType: { type: 'string', label: 'Title Type' },
 		primaryTitle: { type: 'string', label: 'Primary Title' },

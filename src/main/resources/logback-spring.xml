@@ -15,13 +15,20 @@
 		"
 	/>
 
-	<!-- Matches Spring Boot defaults -->
 	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
 	<include resource="org/springframework/boot/logging/logback/console-appender.xml" />
 
-	<root level="INFO">
-		<appender-ref ref="CONSOLE"/>
-	</root>
+	<springProfile name="dev">
+		<root level="INFO">
+			<appender-ref ref="CONSOLE"/>
+		</root>
+	</springProfile>
+
+	<springProfile name="prod">
+		<root level="WARN">
+			<appender-ref ref="CONSOLE"/>
+		</root>
+	</springProfile>
 
 	<!-- Override ONLY the console log pattern to add markers -->
 	<logger name="ROOT"/>

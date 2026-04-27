@@ -1,4 +1,4 @@
-type UploadError = Record<string, number>;
+type UploadError = Partial<Record<string, number>>;
 
 export const UPLOAD_ERROR = {
 	BAD_REQUEST: 400,

@@ -9,9 +9,9 @@ inefficiencies, or areas with overkill functionality. For the most part, the mai
 
 - WebSockets – Upload large .tsv files in the frontend and pipe into Postgres via CopyManager.
 - Docker Compose – Automatically stands up a docker container housing a Postgres database.
-- JPA + QueryDSL – Experimenting on typesafe SQL.
-- React Compiler – New, curious to see how it performs.
-- PrimeReact (v11 alpha) – Also new, curious to work with it as it's developed. Have used v10 in the past.
+- JPA + QueryDSL – Allows for typesafe SQL.
+- React Compiler – Automatically memo-ises components.
+- MUI – Out-of-the-box components and standardised styling.
 - Strict ESLint/Prettier rules – Keep frontend consistent and instil good coding practices.
 
 # Set-up (Dev)

@@ -227,7 +227,7 @@ public class ImdbNameBasicService {
 			}
 		}
 
-		Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+		Pageable pageable = PageRequest.of(request.getNumber(), request.getSize());
 
 		List<ImdbNameBasicDTO> results = queryFactory
 			.select(Projections.constructor(

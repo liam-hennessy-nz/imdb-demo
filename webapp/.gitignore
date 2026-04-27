@@ -12,7 +12,6 @@ dist
 dist-ssr
 *.local
 tls/
-stats.html
 
 # Editor directories and files
 .vscode/*

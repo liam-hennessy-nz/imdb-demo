@@ -1,7 +1,8 @@
-import type { DatasetDef, TypeFromSchema } from '../../shared/entity/Datasets.ts';
+import type { DatasetDef, TypeFromSchema } from '../../dataset/entity/Datasets.ts';
 
 export const RAW_TITLE_AKA_SCHEMA = {
 	column: {
+		id: { type: 'number', label: 'ID' },
 		titleId: { type: 'string', label: 'Title ID' },
 		ordering: { type: 'string', label: 'Ordering' },
 		title: { type: 'string', label: 'Title' },

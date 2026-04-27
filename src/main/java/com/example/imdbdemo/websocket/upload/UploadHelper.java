@@ -1,6 +1,7 @@
 package com.example.imdbdemo.websocket.upload;
 
 import com.example.imdbdemo.shared.config.props.AppProps;
+import com.example.imdbdemo.shared.enums.DatasetKey;
 import com.example.imdbdemo.websocket.upload.dto.UploadChunkDTO;
 import com.example.imdbdemo.websocket.upload.dto.UploadSessionDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.IncomingMessageDTO;
@@ -123,12 +124,13 @@ public class UploadHelper {
 			.build();
 	}
 
-	public void copyFromFileToDatabase(@NonNull Path filePath, @NonNull String copySql) {
+	public void copyFromFileToDatabase(@NonNull UUID uuid, @NonNull Path filePath, @NonNull String copySql) {
 		try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
 			PGConnection pgConn = conn.unwrap(PGConnection.class);
 			CopyManager copyManager = pgConn.getCopyAPI();
 
 			try (InputStream in = new BufferedInputStream(Files.newInputStream(filePath))) {
+				logInfo(uuid, "Beginning copy of file '%s' to database".formatted(filePath));
 				copyManager.copyIn(copySql, in);
 			}
 		} catch (Exception ex) {
@@ -139,31 +141,25 @@ public class UploadHelper {
 	/**
 	 * Method for determining the correct SQL query template from a filename.
 	 *
-	 * @param fileName Filename which will be used to determine the correct template.
+	 * @param datasetString Dataset key which will be used to determine the correct template.
 	 * @return The matching COPY SQL query template.
 	 */
-	public String determineCopySql(String fileName) {
-		if (StringUtils.isBlank(fileName)) {
-			return null;
-		}
+	public String determineCopySql(String datasetString) {
+		if (StringUtils.isBlank(datasetString)) return null;
 
-		String copyBody = switch (fileName) {
-			case "name_basics" ->
-				"imdb_name_basics (nconst, primary_name, birth_year, death_year, primary_profession, known_for_titles)";
-			case "title_akas" ->
-				"imdb_title_akas (tconst, ordering, title, region, language, types, attributes, is_original_title)";
-			case "title_basics" ->
-				"imdb_title_basics (tconst, title_type, primary_title, original_title, is_adult, start_year, end_year, runtime_minutes, genres)";
-			case "title_crew" -> "imdb_title_crews (tconst, directors, writers)";
-			case "title_episode" -> "imdb_title_episodes (tconst, parent_tconst, season_number, episode_number)";
-			case "title_principals" -> "imdb_title_principals (tconst, ordering, nconst, category, job, characters)";
-			case "title_ratings" -> "imdb_title_ratings (tconst, average_rating, num_votes)";
-			default -> null;
+		Optional<DatasetKey> datasetKeyOpt = DatasetKey.fromValue(datasetString);
+		if (datasetKeyOpt.isEmpty()) return null;
+
+		DatasetKey datasetKey = datasetKeyOpt.get();
+		String copyBody = switch (datasetKey) {
+			case DatasetKey.RAW_NAME_BASIC -> "imdb_name_basics (nconst, primary_name, birth_year, death_year, primary_profession, known_for_titles)";
+			case DatasetKey.RAW_TITLE_AKA -> "imdb_title_akas (tconst, ordering, title, region, language, types, attributes, is_original_title)";
+			case DatasetKey.RAW_TITLE_BASIC -> "imdb_title_basics (tconst, title_type, primary_title, original_title, is_adult, start_year, end_year, runtime_minutes, genres)";
+			case DatasetKey.RAW_TITLE_CREW -> "imdb_title_crews (tconst, directors, writers)";
+			case DatasetKey.RAW_TITLE_EPISODE -> "imdb_title_episodes (tconst, parent_tconst, season_number, episode_number)";
+			case DatasetKey.RAW_TITLE_PRINCIPAL -> "imdb_title_principals (tconst, ordering, nconst, category, job, characters)";
+			case DatasetKey.RAW_TITLE_RATING -> "imdb_title_ratings (tconst, average_rating, num_votes)";
 		};
-
-		if (copyBody == null) {
-			return null;
-		}
 
 		return "COPY %s FROM STDIN WITH (FORMAT TEXT, DELIMITER E'\t', NULL '\\N')".formatted(copyBody);
 	}

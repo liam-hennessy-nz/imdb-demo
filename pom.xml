@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.3</version>
+		<version>4.0.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -42,7 +42,7 @@
 
 	<properties>
 		<java.version>25</java.version>
-		<lombok.version>1.18.42</lombok.version>
+		<lombok.version>1.18.46</lombok.version>
 		<lang3.version>3.20.0</lang3.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<modelmapper.version>3.2.6</modelmapper.version>

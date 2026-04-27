@@ -9,7 +9,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import reactX from 'eslint-plugin-react-x';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import tsEslint from 'typescript-eslint';
 
 export default defineConfig([
 	globalIgnores(['dist']),
@@ -18,8 +18,8 @@ export default defineConfig([
 		plugins: { prettier },
 		extends: [
 			js.configs.recommended,
-			...tseslint.configs.strictTypeChecked,
-			...tseslint.configs.stylisticTypeChecked,
+			...tsEslint.configs.strictTypeChecked,
+			...tsEslint.configs.stylisticTypeChecked,
 			react.configs.flat.recommended,
 			reactCompiler.configs.recommended,
 			reactDom.configs.strict,

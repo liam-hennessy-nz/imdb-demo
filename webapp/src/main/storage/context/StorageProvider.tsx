@@ -1,10 +1,10 @@
 import { useCallback, useMemo, type PropsWithChildren } from 'react';
 import { useSearchParams } from 'react-router';
-import { parseErrorMessage } from '../../shared/commonFunctions.ts';
+import { parseErrorMessage } from '../../shared/util/commonFunctions.ts';
 import { devLog } from '../../shared/util/devLog.ts';
 import { StorageContext } from './StorageContext.ts';
 
-export interface StorageContextType {
+export interface StorageContextState {
 	find: (key: string, options?: StorageFindProps) => unknown;
 	set: (key: string, value: string, options?: StorageSetProps) => void;
 	remove: (key: string, options?: StorageRemoveProps) => void;
@@ -142,7 +142,7 @@ export function StorageProvider({ children }: PropsWithChildren) {
 		[setSearchParams]
 	);
 
-	const value: StorageContextType = useMemo(() => {
+	const value: StorageContextState = useMemo(() => {
 		return { find, set, remove };
 	}, [find, set, remove]);
 
