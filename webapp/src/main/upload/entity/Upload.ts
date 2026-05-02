@@ -1,5 +1,5 @@
-import type { ConfigMessage } from './message/incoming/ConfigMessage.ts';
-import type { UploadStatus } from './UploadStatus.ts';
+import type { ConfigMessageDTO } from '../dto/message/incoming/ConfigMessageDTO.ts';
+import type { UploadStatus } from './UploadUiConfig.ts';
 
 interface FileMetadata {
 	name: string;
@@ -10,7 +10,7 @@ interface FileMetadata {
 export interface BaseUpload {
 	status: UploadStatus;
 	chunkAcks: Partial<Record<number, boolean>>;
-	config?: ConfigMessage;
+	config?: ConfigMessageDTO;
 	errorMessage?: string;
 }
 

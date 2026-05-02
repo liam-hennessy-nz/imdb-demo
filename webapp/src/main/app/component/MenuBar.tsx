@@ -8,7 +8,7 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { useAppContext } from './context/AppContext.ts';
+import { useAppContext } from '../context/AppContext.ts';
 
 export function MenuBar() {
 	const { isDarkModeEnabled, toggleMenuDrawerOpen, toggleUploadDrawerOpen, toggleDarkModeEnabled } = useAppContext();

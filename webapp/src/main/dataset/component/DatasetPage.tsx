@@ -2,13 +2,13 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import type { ChangeEvent } from 'react';
-import { useAppContext } from '../app/context/AppContext.ts';
-import { parseErrorMessage } from '../shared/util/commonFunctions.ts';
-import { devLog } from '../shared/util/devLog.ts';
-import { useUploadContext } from '../upload/context/UploadContext.ts';
-import type { Upload } from '../upload/entity/Upload.ts';
-import { parseDatasetKey } from '../upload/service/uploadHelper.ts';
-import type { DatasetKey } from './entity/Datasets.ts';
+import { useAppContext } from '../../app/context/AppContext.ts';
+import { parseErrorMessage } from '../../shared/util/commonFunctions.ts';
+import { devLog } from '../../shared/util/devLog.ts';
+import { useUploadContext } from '../../upload/context/UploadContext.ts';
+import type { Upload } from '../../upload/entity/Upload.ts';
+import { parseDatasetKey } from '../../upload/service/uploadHelper.ts';
+import type { DatasetKey } from '../entity/Datasets.ts';
 
 export function DatasetPage() {
 	const appCtx = useAppContext();

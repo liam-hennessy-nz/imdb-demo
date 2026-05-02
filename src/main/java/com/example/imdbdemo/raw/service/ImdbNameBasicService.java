@@ -21,10 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -49,18 +46,16 @@ public class ImdbNameBasicService {
 		BooleanBuilder predicate = new BooleanBuilder();
 
 		if (request.getFilter() != null) {
-			for (Map.Entry<String, PageRequestDTO.FilterConstraint> entry : request.getFilter().entrySet()) {
-				String field = entry.getKey();
-				PageRequestDTO.FilterConstraint constraint = entry.getValue();
-
-				String matchMode = constraint.getMatchMode();
-				String value = constraint.getValue();
+			for (PageRequestDTO.FilterConstraintDTO filter : request.getFilter().getItems()) {
+				String field = filter.getField();
+				String operator = filter.getOperator();
+				String value = filter.getValue();
 
 				if (StringUtils.isBlank(value)) continue;
 
 				switch (field) {
 					case "nconst":
-						switch (matchMode) {
+						switch (operator) {
 							case "startsWith":
 								predicate.and(QImdbNameBasic.imdbNameBasic.nconst.startsWith(value));
 								break;
@@ -84,7 +79,7 @@ public class ImdbNameBasicService {
 						}
 						break;
 					case "primaryName":
-						switch (matchMode) {
+						switch (operator) {
 							case "startsWith":
 								predicate.and(QImdbNameBasic.imdbNameBasic.primaryName.startsWith(value));
 								break;
@@ -108,7 +103,7 @@ public class ImdbNameBasicService {
 						}
 						break;
 					case "birthYear":
-						switch (matchMode) {
+						switch (operator) {
 							case "startsWith":
 								predicate.and(QImdbNameBasic.imdbNameBasic.birthYear.startsWith(value));
 								break;
@@ -132,7 +127,7 @@ public class ImdbNameBasicService {
 						}
 						break;
 					case "deathYear":
-						switch (matchMode) {
+						switch (operator) {
 							case "startsWith":
 								predicate.and(QImdbNameBasic.imdbNameBasic.deathYear.startsWith(value));
 								break;
@@ -156,7 +151,7 @@ public class ImdbNameBasicService {
 						}
 						break;
 					case "primaryProfession":
-						switch (matchMode) {
+						switch (operator) {
 							case "startsWith":
 								predicate.and(QImdbNameBasic.imdbNameBasic.primaryProfession.startsWith(value));
 								break;
@@ -180,7 +175,7 @@ public class ImdbNameBasicService {
 						}
 						break;
 					case "knownForTitles":
-						switch (matchMode) {
+						switch (operator) {
 							case "startsWith":
 								predicate.and(QImdbNameBasic.imdbNameBasic.knownForTitles.startsWith(value));
 								break;
@@ -215,19 +210,19 @@ public class ImdbNameBasicService {
 		if (request.getSort() != null) {
 			PathBuilder<ImdbNameBasic> path = new PathBuilder<>(ImdbNameBasic.class, "imdbNameBasic");
 
-			for (Map.Entry<String, Integer> entry : request.getSort().entrySet()) {
-				String field = entry.getKey();
-				Integer order = entry.getValue();
+			for (PageRequestDTO.SortDTO sort : request.getSort()) {
+				String field = sort.getField();
+				String value = sort.getSort();
 
-				if (order == 1) {
+				if (Objects.equals(value, "asc")) {
 					sortOrder.add(path.getString(field).asc());
-				} else if (order == -1) {
+				} else if (Objects.equals(value, "desc")) {
 					sortOrder.add(path.getString(field).desc());
 				}
 			}
 		}
 
-		Pageable pageable = PageRequest.of(request.getNumber(), request.getSize());
+		Pageable pageable = PageRequest.of(request.getPagination().getPage(), request.getPagination().getPageSize());
 
 		List<ImdbNameBasicDTO> results = queryFactory
 			.select(Projections.constructor(

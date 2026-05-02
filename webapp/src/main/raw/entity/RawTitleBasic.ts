@@ -1,19 +1,30 @@
-import type { DatasetDef, TypeFromSchema } from '../../dataset/entity/Datasets.ts';
+import type { DatasetConfig } from '../../dataset/entity/Datasets.ts';
 
-export const RAW_TITLE_BASIC_SCHEMA = {
-	column: {
-		id: { type: 'number', label: 'ID' },
-		tconst: { type: 'string', label: 'TConst' },
-		titleType: { type: 'string', label: 'Title Type' },
-		primaryTitle: { type: 'string', label: 'Primary Title' },
-		originalTitle: { type: 'string', label: 'Original Title' },
-		isAdult: { type: 'string', label: 'Adult?' },
-		startYear: { type: 'string', label: 'Start Year' },
-		endYear: { type: 'string', label: 'End Year' },
-		runtimeMinutes: { type: 'string', label: 'Runtime (mins)' },
-		genres: { type: 'string', label: 'Genre' },
+export interface RawTitleBasic {
+	id: number;
+	tconst: string;
+	titleType: string;
+	primaryTitle: string;
+	originalTitle: string;
+	isAdult: string;
+	startYear: string;
+	endYear: string;
+	runtimeMinutes: string;
+	genres: string;
+}
+
+export const RAW_TITLE_BASIC_CONFIG: DatasetConfig<RawTitleBasic> = {
+	keys: {
+		id: { label: 'ID', flex: 1 },
+		tconst: { label: 'TConst', flex: 1 },
+		titleType: { label: 'Title Type', flex: 1 },
+		primaryTitle: { label: 'Primary Title', flex: 1 },
+		originalTitle: { label: 'Original Title', flex: 1 },
+		isAdult: { label: 'Adult?', flex: 1 },
+		startYear: { label: 'Start Year', flex: 1 },
+		endYear: { label: 'End Year', flex: 1 },
+		runtimeMinutes: { label: 'Runtime (mins)', flex: 1 },
+		genres: { label: 'Genre', flex: 1 },
 	},
 	file: 'title.basics.tsv',
-} as const satisfies DatasetDef;
-
-export type RawTitleBasic = TypeFromSchema<typeof RAW_TITLE_BASIC_SCHEMA>;
+} as const satisfies DatasetConfig<RawTitleBasic>;

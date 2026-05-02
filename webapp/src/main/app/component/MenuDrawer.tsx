@@ -12,7 +12,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { Link } from 'react-router';
-import { useAppContext } from './context/AppContext.ts';
+import { useAppContext } from '../context/AppContext.ts';
 
 export function MenuDrawer() {
 	const { isMenuDrawerOpen, setMenuDrawerOpen } = useAppContext();

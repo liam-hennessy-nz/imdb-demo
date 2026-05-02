@@ -63,12 +63,12 @@ public class UploadHelper {
 	}
 
 	/**
-	 * Method parses an IncomingMessage from a TextMessage.
+	 * Method parses an IncomingMessageDTO from a TextMessage.
 	 *
 	 * @param session The WebSocket session the TextMessage was received on.
-	 * @param message The TextMessage to parse the IncomingMessage from.
+	 * @param message The TextMessage to parse the IncomingMessageDTO from.
 	 * @return An {@link IncomingMessageDTO} containing message data.
-	 * @throws UploadException if an IncomingMessage fails to be parsed from the TextMessage.
+	 * @throws UploadException if an IncomingMessageDTO fails to be parsed from the TextMessage.
 	 */
 	public IncomingMessageDTO parseIncomingMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
 		UUID sessionUuid = UUID.fromString(session.getId());

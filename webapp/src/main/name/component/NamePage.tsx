@@ -1,5 +1,5 @@
 export function NamePage() {
-	/*	const [names, setNames] = useState<PageResponse<RawNameBasic> | null>(null);
+	/*	const [names, setNames] = useState<PageResponseDTO<RawNameBasic> | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 
 	async function onPage(request: FilterRequest) {

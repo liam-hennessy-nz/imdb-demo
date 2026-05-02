@@ -1,13 +1,18 @@
-import type { DatasetDef, TypeFromSchema } from '../../dataset/entity/Datasets.ts';
+import type { DatasetConfig } from '../../dataset/entity/Datasets.ts';
 
-export const RAW_TITLE_CREW_SCHEMA = {
-	column: {
-		id: { type: 'number', label: 'ID' },
-		tconst: { type: 'string', label: 'TConst' },
-		directors: { type: 'string', label: 'Directors' },
-		writers: { type: 'string', label: 'Writers' },
+export interface RawTitleCrew {
+	id: number;
+	tconst: string;
+	directors: string;
+	writers: string;
+}
+
+export const RAW_TITLE_CREW_CONFIG: DatasetConfig<RawTitleCrew> = {
+	keys: {
+		id: { label: 'ID', flex: 1 },
+		tconst: { label: 'TConst', flex: 1 },
+		directors: { label: 'Directors', flex: 1 },
+		writers: { label: 'Writers', flex: 1 },
 	},
 	file: 'title.crew.tsv',
-} as const satisfies DatasetDef;
-
-export type RawTitleCrew = TypeFromSchema<typeof RAW_TITLE_CREW_SCHEMA>;
+} as const satisfies DatasetConfig<RawTitleCrew>;

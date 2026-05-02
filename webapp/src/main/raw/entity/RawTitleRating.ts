@@ -1,13 +1,18 @@
-import type { DatasetDef, TypeFromSchema } from '../../dataset/entity/Datasets.ts';
+import type { DatasetConfig } from '../../dataset/entity/Datasets.ts';
 
-export const RAW_TITLE_RATING_SCHEMA = {
-	column: {
-		id: { type: 'number', label: 'ID' },
-		tconst: { type: 'string', label: 'TConst' },
-		averageRating: { type: 'string', label: 'Average Rating' },
-		numVotes: { type: 'string', label: 'Number of Votes' },
+export interface RawTitleRating {
+	id: number;
+	tconst: string;
+	averageRating: string;
+	numVotes: string;
+}
+
+export const RAW_TITLE_RATING_CONFIG: DatasetConfig<RawTitleRating> = {
+	keys: {
+		id: { label: 'ID', flex: 1 },
+		tconst: { label: 'TConst', flex: 1 },
+		averageRating: { label: 'Average Rating', flex: 1 },
+		numVotes: { label: 'Number of Votes', flex: 1 },
 	},
 	file: 'title.ratings.tsv',
-} as const satisfies DatasetDef;
-
-export type RawTitleRating = TypeFromSchema<typeof RAW_TITLE_RATING_SCHEMA>;
+} as const satisfies DatasetConfig<RawTitleRating>;

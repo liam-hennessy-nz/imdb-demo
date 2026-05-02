@@ -1,18 +1,18 @@
 import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
 import { STORAGE, WEBSOCKET } from '../../shared/constant/constants.ts';
 import { ENDPOINT } from '../../shared/constant/endpoint.ts';
-import { UPLOAD_ERROR } from '../../shared/constant/uploadError.ts';
+import { UPLOAD_ERROR } from '../../shared/entity/UploadError.ts';
 import { newErrorWrap, parseErrorMessage, sleep, waitForCondition } from '../../shared/util/commonFunctions.ts';
 import { devLog } from '../../shared/util/devLog.ts';
 import { initWebSocket } from '../../shared/util/initWebSocket.ts';
 import type { StorageContextState } from '../../storage/context/StorageProvider.tsx';
 import type { UploadContextState } from '../context/UploadProvider.tsx';
-import type { AckMessage } from '../entity/message/incoming/AckMessage.ts';
-import type { ConfigMessage } from '../entity/message/incoming/ConfigMessage.ts';
-import type { ErrorMessage } from '../entity/message/incoming/ErrorMessage.ts';
-import type { EofMessage } from '../entity/message/outgoing/EofMessage.ts';
-import type { MetadataMessage } from '../entity/message/outgoing/MetadataMessage.ts';
-import type { ResumeMessage } from '../entity/message/outgoing/ResumeMessage.ts';
+import type { AckMessageDTO } from '../dto/message/incoming/AckMessageDTO.ts';
+import type { ConfigMessageDTO } from '../dto/message/incoming/ConfigMessageDTO.ts';
+import type { ErrorMessageDTO } from '../dto/message/incoming/ErrorMessageDTO.ts';
+import type { EofMessageDTO } from '../dto/message/outgoing/EofMessageDTO.ts';
+import type { MetadataMessageDTO } from '../dto/message/outgoing/MetadataMessageDTO.ts';
+import type { ResumeMessageDTO } from '../dto/message/outgoing/ResumeMessageDTO.ts';
 import type { Upload } from '../entity/Upload.ts';
 import type { StoredUploadRecord } from '../entity/UploadRecord.ts';
 import {
@@ -116,7 +116,7 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 		if (storedUpload?.config !== undefined && doesUploadMatchStored(upload, storedUpload)) {
 			// Send resume message
 			devLog.info('Partial upload found, sending resume message...');
-			const resume: ResumeMessage = {
+			const resume: ResumeMessageDTO = {
 				type: 'res',
 				uuid: storedUpload.config.uuid,
 				fileName: upload.file.name,
@@ -129,7 +129,7 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 		else {
 			// Send metadata message
 			devLog.info('No matching partial upload found, sending metadata message...');
-			const metadata: MetadataMessage = {
+			const metadata: MetadataMessageDTO = {
 				type: 'meta',
 				datasetKey: datasetKey,
 				fileName: upload.file.name,
@@ -147,7 +147,7 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 	}
 
 	async function sendChunk(
-		upload: Upload & { config: ConfigMessage },
+		upload: Upload & { config: ConfigMessageDTO },
 		chunk: ArrayBufferLike,
 		chunkIndex: number,
 		maxAttempts = doRetryOnChunkFail ? chunkMaxAttempts : 1
@@ -250,7 +250,7 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'processing' });
 
 		// Send EOF once all acks received to finish stream with backend
-		const eof: EofMessage = {
+		const eof: EofMessageDTO = {
 			type: 'eof',
 			uuid: upload.config.uuid,
 		};
@@ -335,7 +335,7 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 		});
 	}
 
-	function handleErrorMessage(err: ErrorMessage) {
+	function handleErrorMessage(err: ErrorMessageDTO) {
 		const { code, reason } = err;
 
 		let errorMessage: string;
@@ -374,11 +374,11 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 		close();
 	}
 
-	function handleConfigMessage(cfg: ConfigMessage) {
+	function handleConfigMessage(cfg: ConfigMessageDTO) {
 		uploadCtx.dispatch({ type: 'CONFIG_UPDATED', datasetKey: datasetKey, config: cfg });
 	}
 
-	function handleAckMessage(ack: AckMessage) {
+	function handleAckMessage(ack: AckMessageDTO) {
 		const { chunkIndex } = ack;
 
 		const upload = uploadCtx.find(datasetKey);
@@ -409,17 +409,17 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 
 		if (incomingMessage.type === 'err') {
 			// Error message, throw Error with received reason
-			handleErrorMessage(incomingMessage as ErrorMessage);
+			handleErrorMessage(incomingMessage as ErrorMessageDTO);
 		} else if (incomingMessage.type === 'cfg') {
 			// Config message, update upload context
-			handleConfigMessage(incomingMessage as ConfigMessage);
+			handleConfigMessage(incomingMessage as ConfigMessageDTO);
 		} else if (uploadCtx.find(datasetKey) === null) {
 			// Ack or end received while upload does not exist in UploadContext, throw Error
 			throw new Error('Upload config was not the first received message');
 		} else {
 			// Ack message, acknowledge all chunks up to current index
 			if (incomingMessage.type === 'ack') {
-				handleAckMessage(incomingMessage as AckMessage);
+				handleAckMessage(incomingMessage as AckMessageDTO);
 			}
 			// End message, backend is now processing uploaded file
 			else {

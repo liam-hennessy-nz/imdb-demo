@@ -1,8 +1,8 @@
 import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
-import type { ConfigMessage } from '../entity/message/incoming/ConfigMessage.ts';
+import type { ConfigMessageDTO } from '../dto/message/incoming/ConfigMessageDTO.ts';
 import type { Upload } from '../entity/Upload.ts';
 import type { UploadRecord } from '../entity/UploadRecord.ts';
-import type { UploadStatus } from '../entity/UploadStatus.ts';
+import type { UploadStatus } from '../entity/UploadUiConfig.ts';
 
 export type UploadAction =
 	| { type: 'UPLOADS_CLEARED' }
@@ -10,7 +10,7 @@ export type UploadAction =
 	| { type: 'UPLOAD_UPDATED'; datasetKey: DatasetKey; uploadPart: Partial<Upload> }
 	| { type: 'UPLOAD_REMOVED'; datasetKey: DatasetKey }
 	| { type: 'FILE_UPDATED'; datasetKey: DatasetKey; file: File }
-	| { type: 'CONFIG_UPDATED'; datasetKey: DatasetKey; config: ConfigMessage }
+	| { type: 'CONFIG_UPDATED'; datasetKey: DatasetKey; config: ConfigMessageDTO }
 	| { type: 'CONFIG_REMOVED'; datasetKey: DatasetKey }
 	| { type: 'CHUNK_SENT'; datasetKey: DatasetKey; chunk: number }
 	| { type: 'CHUNK_ACKED'; datasetKey: DatasetKey; chunk: number }

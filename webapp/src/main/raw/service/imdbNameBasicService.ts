@@ -1,5 +1,5 @@
-import type { FilterRequest } from '../../shared/entity/FilterRequest.ts';
-import type { PageResponse } from '../../shared/entity/PageResponse.ts';
+import type { PageRequestDTO } from '../../shared/dto/PageRequestDTO.ts';
+import type { PageResponseDTO } from '../../shared/dto/PageResponseDTO.ts';
 import { GET, POST } from '../../shared/service/requestService.ts';
 import type { RawNameBasic } from '../entity/RawNameBasic.ts';
 
@@ -19,9 +19,9 @@ export async function pageImdbNameBasics(page?: number, size?: number) {
 		size: size?.toString() ?? '10',
 	});
 
-	return await GET<PageResponse<RawNameBasic>>(`${basePath}/?${params}`);
+	return await GET<PageResponseDTO<RawNameBasic>>(`${basePath}/?${params}`);
 }
 
-export async function filterImdbNameBasics(request: FilterRequest) {
-	return await POST<PageResponse<RawNameBasic>>(`${basePath}/filter`, request);
+export async function filterImdbNameBasics(request: PageRequestDTO) {
+	return await POST<PageResponseDTO<RawNameBasic>>(`${basePath}/filter`, request);
 }

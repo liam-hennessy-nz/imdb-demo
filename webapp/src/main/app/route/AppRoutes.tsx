@@ -1,8 +1,8 @@
 import type { PropsWithChildren } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { Route, Routes } from 'react-router';
-import { DatasetPage } from '../../dataset/DatasetPage.tsx';
-import { HomePage } from '../../home/HomePage.tsx';
+import { DatasetPage } from '../../dataset/component/DatasetPage.tsx';
+import { HomePage } from '../../home/component/HomePage.tsx';
 import { ErrorDialog } from '../../shared/component/dialog/ErrorDialog.tsx';
 import { parseError } from '../../shared/util/commonFunctions.ts';
 

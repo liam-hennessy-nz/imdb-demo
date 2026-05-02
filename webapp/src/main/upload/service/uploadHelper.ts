@@ -1,13 +1,16 @@
-import { DATASET_SCHEMA, type DatasetKey } from '../../dataset/entity/Datasets.ts';
+import { DATASET_CONFIGS, type DatasetKey } from '../../dataset/entity/Datasets.ts';
 import { WEBSOCKET } from '../../shared/constant/constants.ts';
 import { readFileSnippet } from '../../shared/service/fileService.ts';
 import { newErrorWrap } from '../../shared/util/commonFunctions.ts';
-import type { ConfigMessage } from '../entity/message/incoming/ConfigMessage.ts';
-import type { IncomingMessage } from '../entity/message/incoming/IncomingMessage.ts';
+import type { ConfigMessageDTO } from '../dto/message/incoming/ConfigMessageDTO.ts';
+import type { IncomingMessageDTO } from '../dto/message/incoming/IncomingMessageDTO.ts';
 import type { StoredUpload, Upload } from '../entity/Upload.ts';
 import { UPLOAD_UI_CONFIG } from '../entity/UploadUiConfig.ts';
 
-export async function buildChunkByteArray(upload: Upload & { config: ConfigMessage; file: File }, chunkIndex: number) {
+export async function buildChunkByteArray(
+	upload: Upload & { config: ConfigMessageDTO; file: File },
+	chunkIndex: number
+) {
 	// Start is chunk index x chunk size (from upload config)
 	const start = chunkIndex * upload.config.chunkByteSize;
 	// End is start + chunk size (from upload config)
@@ -59,11 +62,11 @@ export function getChunkProgress(upload: Upload) {
  * @returns `null`, if the string array does not match any datasets.
  */
 export function findDatasetKey(columnArray: string[]): DatasetKey | null {
-	for (const dataset of Object.keys(DATASET_SCHEMA) as DatasetKey[]) {
-		const { column } = DATASET_SCHEMA[dataset];
-		// Get column keys from schema const, sliced to ignore the first (ID) field which won't exist yet
-		const columnKeys = Object.keys(column).slice(1);
-
+	for (const dataset of Object.keys(DATASET_CONFIGS) as DatasetKey[]) {
+		const { keys } = DATASET_CONFIGS[dataset];
+		// Get column keys from config const, sliced to ignore the first (ID) field which won't exist yet
+		const columnKeys = Object.keys(keys).slice(1);
+		// Return the matching dataset key if all column keys are found in the array
 		if (columnArray.length === columnKeys.length && columnKeys.every((k) => columnArray.includes(k))) {
 			return dataset;
 		}
@@ -97,7 +100,7 @@ export async function parseDatasetKey(file: File): Promise<DatasetKey> {
 	return datasetKey;
 }
 
-export function parseIncomingMessage(message: string): IncomingMessage {
+export function parseIncomingMessage(message: string): IncomingMessageDTO {
 	let data: unknown;
 
 	// Attempt to parse string
@@ -107,12 +110,12 @@ export function parseIncomingMessage(message: string): IncomingMessage {
 		throw newErrorWrap(`Failed to parse message as JSON`, ex);
 	}
 
-	// Validate parsed object has correct IncomingMessage properties
+	// Validate parsed object has correct IncomingMessageDTO properties
 	if (typeof data !== 'object' || data === null || !('type' in data) || typeof data.type !== 'string') {
 		throw new Error(`Invalid message: ${message}`);
 	}
 
-	return data as IncomingMessage;
+	return data as IncomingMessageDTO;
 }
 
 export function assertUploadIsNotNull(upload: Upload | null): asserts upload is Upload {
@@ -120,10 +123,10 @@ export function assertUploadIsNotNull(upload: Upload | null): asserts upload is 
 }
 
 /**
- * Function that asserts an Upload object contains a ConfigMessage.
+ * Function that asserts an Upload object contains a ConfigMessageDTO.
  * @param upload The Upload object to assert.
  */
-export function assertUploadHasConfig(upload: Upload | null): asserts upload is Upload & { config: ConfigMessage } {
+export function assertUploadHasConfig(upload: Upload | null): asserts upload is Upload & { config: ConfigMessageDTO } {
 	if (upload?.config === undefined) throw new Error(`Upload does not contain a ConfigMessage`);
 }
 

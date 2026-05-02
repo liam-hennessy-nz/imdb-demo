@@ -1,16 +1,24 @@
-import type { DatasetDef, TypeFromSchema } from '../../dataset/entity/Datasets.ts';
+import type { DatasetConfig } from '../../dataset/entity/Datasets.ts';
 
-export const RAW_NAME_BASIC_SCHEMA = {
-	column: {
-		id: { type: 'number', label: 'ID' },
-		nconst: { type: 'string', label: 'NConst' },
-		primaryName: { type: 'string', label: 'Primary Name' },
-		birthYear: { type: 'string', label: 'Birth Year' },
-		deathYear: { type: 'string', label: 'Death Year' },
-		primaryProfession: { type: 'string', label: 'Primary Profession' },
-		knownForTitles: { type: 'string', label: 'Known For Titles' },
+export interface RawNameBasic {
+	id: number;
+	nconst: string;
+	primaryName: string;
+	birthYear: string;
+	deathYear: string;
+	primaryProfession: string;
+	knownForTitles: string;
+}
+
+export const RAW_NAME_BASIC_CONFIG: DatasetConfig<RawNameBasic> = {
+	keys: {
+		id: { label: 'ID', flex: 1 },
+		nconst: { label: 'NConst', flex: 2 },
+		primaryName: { label: 'Primary Name', flex: 3 },
+		birthYear: { label: 'Birth Year', flex: 2 },
+		deathYear: { label: 'Death Year', flex: 2 },
+		primaryProfession: { label: 'Primary Profession', flex: 4 },
+		knownForTitles: { label: 'Known For Titles', flex: 4 },
 	},
 	file: 'name.basics.tsv',
-} as const satisfies DatasetDef;
-
-export type RawNameBasic = TypeFromSchema<typeof RAW_NAME_BASIC_SCHEMA>;
+} as const satisfies DatasetConfig<RawNameBasic>;

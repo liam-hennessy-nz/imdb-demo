@@ -1,7 +1,7 @@
 import type { DatasetKey } from '../../../../dataset/entity/Datasets.ts';
-import type { OutgoingMessage } from './OutgoingMessage.ts';
+import type { OutgoingMessageDTO } from './OutgoingMessageDTO.ts';
 
-export interface MetadataMessage extends OutgoingMessage {
+export interface MetadataMessageDTO extends OutgoingMessageDTO {
 	type: 'meta';
 	datasetKey: DatasetKey;
 	fileName: string;

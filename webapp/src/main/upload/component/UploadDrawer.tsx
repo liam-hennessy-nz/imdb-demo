@@ -3,11 +3,11 @@ import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import { Fragment } from 'react';
-import { useAppContext } from '../app/context/AppContext.ts';
-import type { DatasetKey } from '../dataset/entity/Datasets.ts';
-import { useUploadContext } from './context/UploadContext.ts';
-import type { Upload } from './entity/Upload.ts';
-import { assertUploadHasFile, assertUploadIsVisible } from './service/uploadHelper.ts';
+import { useAppContext } from '../../app/context/AppContext.ts';
+import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
+import { useUploadContext } from '../context/UploadContext.ts';
+import type { Upload } from '../entity/Upload.ts';
+import { assertUploadHasFile, assertUploadIsVisible } from '../service/uploadHelper.ts';
 import { UploadItem } from './UploadItem.tsx';
 
 export function UploadDrawer() {

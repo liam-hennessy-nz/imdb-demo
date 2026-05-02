@@ -5,7 +5,7 @@ import { useLatest } from '../../shared/util/useLatest.ts';
 import { useStorageContext } from '../../storage/context/StorageContext.ts';
 import type { Upload } from '../entity/Upload.ts';
 import type { UploadRecord } from '../entity/UploadRecord.ts';
-import type { UploadStatus } from '../entity/UploadStatus.ts';
+import type { UploadStatus } from '../entity/UploadUiConfig.ts';
 import { getChunkAckedCount, getChunkTotalCount, getChunkUnackedCount } from '../service/uploadHelper.ts';
 import { UploadContext } from './UploadContext.ts';
 import { uploadsReducer, type UploadAction } from './uploadsReducer.ts';

@@ -19,7 +19,7 @@ interface UploadUiConfig {
 	};
 }
 
-type UploadUiState = Record<string, UploadUiConfig>;
+type UploadUiState = Partial<Record<string, UploadUiConfig>>;
 
 export const UPLOAD_UI_CONFIG = {
 	inactive: {
@@ -133,3 +133,5 @@ export const UPLOAD_UI_CONFIG = {
 		},
 	},
 } as const satisfies UploadUiState;
+
+export type UploadStatus = keyof typeof UPLOAD_UI_CONFIG;

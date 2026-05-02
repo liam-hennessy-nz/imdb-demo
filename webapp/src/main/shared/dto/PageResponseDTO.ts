@@ -1,4 +1,4 @@
-export interface PageResponse<T> {
+export interface PageResponseDTO<T> {
 	content: T[];
 	page: {
 		number: number;

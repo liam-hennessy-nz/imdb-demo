@@ -4,13 +4,13 @@ import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { DatasetKey } from '../dataset/entity/Datasets.ts';
-import { formatBytes } from '../shared/util/commonFunctions.ts';
-import { useStorageContext } from '../storage/context/StorageContext.ts';
-import { useUploadContext } from './context/UploadContext.ts';
-import type { Upload } from './entity/Upload.ts';
-import { getChunkProgress, getUploadUiConfig } from './service/uploadHelper.ts';
-import { uploadService } from './service/uploadService.ts';
+import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
+import { formatBytes } from '../../shared/util/commonFunctions.ts';
+import { useStorageContext } from '../../storage/context/StorageContext.ts';
+import { useUploadContext } from '../context/UploadContext.ts';
+import type { Upload } from '../entity/Upload.ts';
+import { getChunkProgress, getUploadUiConfig } from '../service/uploadHelper.ts';
+import { uploadService } from '../service/uploadService.ts';
 
 interface UploadItemProps {
 	datasetKey: DatasetKey;

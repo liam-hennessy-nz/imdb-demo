@@ -1,6 +1,6 @@
-import type { IncomingMessage } from './IncomingMessage.ts';
+import type { IncomingMessageDTO } from './IncomingMessageDTO.ts';
 
-export interface ConfigMessage extends IncomingMessage {
+export interface ConfigMessageDTO extends IncomingMessageDTO {
 	type: 'cfg';
 	uuid: string;
 	chunkIndex: number;

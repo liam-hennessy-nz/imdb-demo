@@ -1,3 +1,5 @@
+import type { GridFilterItem, GridFilterModel, GridSortModel } from '@mui/x-data-grid';
+
 export const WEBSOCKET = {
 	CONNECT: {
 		MAX_ATTEMPTS: 10,
@@ -25,12 +27,15 @@ export const WEBSOCKET = {
 export const STORAGE = {
 	KEYS: {
 		IS_DARK_MODE_ENABLED: 'isDarkModeEnabled',
-		IS_SIDEBAR_VISIBLE: 'isSidebarVisible',
-		IS_UPLOADS_VISIBLE: 'isUploadsVisible',
 		DATASET_UPLOADS: 'datasetUploads',
 	},
 } as const;
 
 export const PAGINATOR = {
-	DEFAULT_SIZE: 25,
+	INIT: {
+		PAGINATION: { page: 0, pageSize: 25 },
+		SORT: [{ field: 'id', sort: 'asc' }] as GridSortModel,
+		FILTER: { items: [] as GridFilterItem[] } as GridFilterModel,
+	},
+	PAGE_SIZE_OPTIONS: [5, 10, 15, 25, 50, 100],
 } as const;

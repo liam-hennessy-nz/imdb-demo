@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { Outlet } from 'react-router';
-import { MenuBar } from './main/app/MenuBar.tsx';
-import { MenuDrawer } from './main/app/MenuDrawer.tsx';
-import { UploadDrawer } from './main/upload/UploadDrawer.tsx';
+import { MenuBar } from './main/app/component/MenuBar.tsx';
+import { MenuDrawer } from './main/app/component/MenuDrawer.tsx';
+import { UploadDrawer } from './main/upload/component/UploadDrawer.tsx';
 
 export function App() {
 	return (
