@@ -23,9 +23,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 		const initVal = (storage.find(STORAGE.KEYS.IS_DARK_MODE_ENABLED) as boolean | string | null) ?? defaultVal;
 		return initVal === true || initVal === 'true';
 	});
-
 	const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState<boolean>(false);
-
 	const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState<boolean>(false);
 
 	const handleToggleIsDarkModeEnabled = useCallback(() => {

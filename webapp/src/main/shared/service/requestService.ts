@@ -1,44 +1,34 @@
-import axios, { type AxiosRequestConfig } from 'axios';
-import { ENDPOINT } from '../constant/endpoint.ts';
-import { newErrorWrap, parseErrorMessage } from '../util/commonFunctions.ts';
+import axios from 'axios';
+import { newErrorWrap, parseAxiosError } from '../util/commonFunctions.ts';
 
-export async function GET<T>(path: string) {
+export async function GET<T>(url: URL, abortSignal?: AbortSignal) {
 	try {
-		return (await axios.get<T>(`${ENDPOINT.API}/${path}`)).data;
+		return (await axios.get<T>(url.toString(), { signal: abortSignal })).data;
 	} catch (ex) {
-		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
+		throw newErrorWrap(parseAxiosError(ex), ex);
 	}
 }
 
-export async function POST<T>(path: string, data?: unknown, config?: AxiosRequestConfig) {
+export async function POST<T>(url: URL, data?: unknown, abortSignal?: AbortSignal) {
 	try {
-		return (await axios.post<T>(`${ENDPOINT.API}/${path}`, data, config)).data;
+		return (await axios.post<T>(url.toString(), data, { signal: abortSignal })).data;
 	} catch (ex) {
-		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
+		throw newErrorWrap(parseAxiosError(ex), ex);
 	}
 }
 
-export async function PUT<T>(path: string, data?: unknown) {
+export async function PUT<T>(url: URL, data?: unknown, abortSignal?: AbortSignal) {
 	try {
-		return (await axios.put<T>(`${ENDPOINT.API}/${path}`, data)).data;
+		return (await axios.put<T>(url.toString(), data, { signal: abortSignal })).data;
 	} catch (ex) {
-		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
+		throw newErrorWrap(parseAxiosError(ex), ex);
 	}
 }
 
-export async function DELETE(path: string) {
+export async function DELETE(url: URL, abortSignal?: AbortSignal) {
 	try {
-		await axios.delete(`${ENDPOINT.API}/${path}`);
+		await axios.delete(url.toString(), { signal: abortSignal });
 	} catch (ex) {
-		throw newErrorWrap(parseAxiosErrorMessage(ex), ex);
-	}
-}
-
-function parseAxiosErrorMessage(ex: unknown) {
-	if (axios.isAxiosError(ex)) {
-		const status = ex.response !== undefined ? ` [${ex.response.status.toString()}]` : '';
-		return `Axios error${status}: ${ex.message !== '' ? ex.message : 'Unknown error'}`;
-	} else {
-		return parseErrorMessage(ex);
+		throw newErrorWrap(parseAxiosError(ex), ex);
 	}
 }
