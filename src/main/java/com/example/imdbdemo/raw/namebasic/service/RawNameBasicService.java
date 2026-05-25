@@ -1,33 +1,33 @@
 package com.example.imdbdemo.raw.namebasic.service;
 
+import static com.example.imdbdemo.shared.PageHelper.*;
+
 import com.example.imdbdemo.raw.namebasic.dto.RawNameBasicDTO;
 import com.example.imdbdemo.raw.namebasic.entity.QRawNameBasic;
 import com.example.imdbdemo.raw.namebasic.entity.RawNameBasic;
-import com.example.imdbdemo.shared.exception.IllegalFilterFieldException;
 import com.example.imdbdemo.raw.namebasic.exception.RawNameBasicNotFoundException;
 import com.example.imdbdemo.raw.namebasic.mapper.RawNameBasicMapper;
 import com.example.imdbdemo.raw.namebasic.repository.RawNameBasicRepository;
 import com.example.imdbdemo.shared.PageHelper;
+import com.example.imdbdemo.shared.exception.IllegalFilterFieldException;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.example.imdbdemo.shared.PageHelper.*;
-
 @Service
 @RequiredArgsConstructor
 public class RawNameBasicService {
+
 	private final JPAQueryFactory queryFactory;
 	private final RawNameBasicRepository rawNameBasicRepository;
 	private final RawNameBasicMapper rawNameBasicMapper;
@@ -58,20 +58,20 @@ public class RawNameBasicService {
 		return booleanBuilder.getValue();
 	}
 
-	private Page<RawNameBasicDTO> search(
-		Predicate predicate, OrderSpecifier<?>[] orderSpecifiers, Pageable pageable
-	) {
+	private Page<RawNameBasicDTO> search(Predicate predicate, OrderSpecifier<?>[] orderSpecifiers, Pageable pageable) {
 		List<RawNameBasicDTO> results = queryFactory
-			.select(Projections.constructor(
-				RawNameBasicDTO.class,
-				NAME_BASIC.id,
-				NAME_BASIC.nconst,
-				NAME_BASIC.primaryName,
-				NAME_BASIC.birthYear,
-				NAME_BASIC.deathYear,
-				NAME_BASIC.primaryProfession,
-				NAME_BASIC.knownForTitles
-			))
+			.select(
+				Projections.constructor(
+					RawNameBasicDTO.class,
+					NAME_BASIC.id,
+					NAME_BASIC.nconst,
+					NAME_BASIC.primaryName,
+					NAME_BASIC.birthYear,
+					NAME_BASIC.deathYear,
+					NAME_BASIC.primaryProfession,
+					NAME_BASIC.knownForTitles
+				)
+			)
 			.from(NAME_BASIC)
 			.where(predicate)
 			.orderBy(orderSpecifiers)
@@ -79,11 +79,7 @@ public class RawNameBasicService {
 			.limit(pageable.getPageSize())
 			.fetch();
 
-		Long total = queryFactory
-			.select(NAME_BASIC.count())
-			.from(NAME_BASIC)
-			.where(predicate)
-			.fetchOne();
+		Long total = queryFactory.select(NAME_BASIC.count()).from(NAME_BASIC).where(predicate).fetchOne();
 
 		return new PageImpl<>(results, pageable, total == null ? 0 : total);
 	}
@@ -97,13 +93,15 @@ public class RawNameBasicService {
 
 	public RawNameBasicDTO findById(Long id) {
 		Optional<RawNameBasic> rawNameBasic = rawNameBasicRepository.findById(id);
-		return rawNameBasic.map(rawNameBasicMapper::mapToDto)
+		return rawNameBasic
+			.map(rawNameBasicMapper::mapToDto)
 			.orElseThrow(() -> new RawNameBasicNotFoundException("id = %s".formatted(id)));
 	}
 
 	public RawNameBasicDTO findByNconst(String nconst) {
 		Optional<RawNameBasic> rawNameBasic = rawNameBasicRepository.findByNconst(nconst);
-		return rawNameBasic.map(rawNameBasicMapper::mapToDto)
+		return rawNameBasic
+			.map(rawNameBasicMapper::mapToDto)
 			.orElseThrow(() -> new RawNameBasicNotFoundException("nconst = %s".formatted(nconst)));
 	}
 }

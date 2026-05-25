@@ -1,15 +1,15 @@
 package com.example.imdbdemo.staging;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.Map;
+import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class StagingMigratorService {
+
 	private final DataSource dataSource;
 	private final StagingMigratorHelperService stagingMigratorHelperService;
 
@@ -50,7 +50,6 @@ public class StagingMigratorService {
 		log.info("Migrating imdb_title_episodes datasetKey to new schema...");
 
 		try (Connection conn = dataSource.getConnection()) {
-
 		} catch (Exception e) {
 			log.error("Failed to migrate imdb_title_episodes", e);
 		}
@@ -60,7 +59,6 @@ public class StagingMigratorService {
 		log.info("Migrating imdb_title_akas datasetKey to new schema...");
 
 		try (Connection conn = dataSource.getConnection()) {
-
 		} catch (Exception e) {
 			log.error("Failed to migrate imdb_title_akas", e);
 		}
@@ -70,7 +68,6 @@ public class StagingMigratorService {
 		log.info("Migrating imdb_name_basics datasetKey to new schema...");
 
 		try (Connection conn = dataSource.getConnection()) {
-
 		} catch (Exception e) {
 			log.error("Failed to migrate imdb_name_basics", e);
 		}
@@ -80,7 +77,6 @@ public class StagingMigratorService {
 		log.info("Migrating imdb_title_principals datasetKey to new schema...");
 
 		try (Connection conn = dataSource.getConnection()) {
-
 		} catch (Exception e) {
 			log.error("Failed to migrate imdb_title_principals", e);
 		}
@@ -90,7 +86,6 @@ public class StagingMigratorService {
 		log.info("Migrating imdb_title_crews datasetKey to new schema...");
 
 		try (Connection conn = dataSource.getConnection()) {
-
 		} catch (Exception e) {
 			log.error("Failed to migrate imdb_title_crews", e);
 		}
@@ -100,7 +95,6 @@ public class StagingMigratorService {
 		log.info("Migrating imdb_title_ratings datasetKey to new schema...");
 
 		try (Connection conn = dataSource.getConnection()) {
-
 		} catch (Exception e) {
 			log.error("Failed to migrate imdb_title_ratings", e);
 		}

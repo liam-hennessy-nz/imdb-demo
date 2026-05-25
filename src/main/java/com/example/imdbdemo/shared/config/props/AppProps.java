@@ -10,9 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "imdb-demo")
-public record AppProps (
-	@NotBlank String host,
-	@Min(1024) @Max(65535) int port,
+public record AppProps(
 	@NotNull boolean useTls,
 	@NotNull String tempDir,
 	@Valid DatabaseProps db,
@@ -20,7 +18,7 @@ public record AppProps (
 	@Valid WebSocketProps ws,
 	@Valid UploadProps ul
 ) {
-	public record DatabaseProps (
+	public record DatabaseProps(
 		@NotBlank String host,
 		@Min(1024) @Max(65535) int port,
 		@NotBlank String name,
@@ -28,25 +26,16 @@ public record AppProps (
 		@NotBlank String pass
 	) {}
 
-	public record KeystoreProps (
+	public record KeystoreProps(
 		@NotBlank String path,
 		@NotBlank String type,
 		@NotBlank String alias,
 		@NotBlank String pass
 	) {}
 
-	public record WebSocketProps (
-		@Valid ChunkProps chunk
-	) {
-		public record ChunkProps (
-			@Min(1) @Max(2097152) int byteSize,
-			@Min(1) int ackInterval,
-			@Min(1) int inFlightMax
-		) {}
+	public record WebSocketProps(@Valid ChunkProps chunk) {
+		public record ChunkProps(@Min(1) @Max(2097152) int byteSize, @Min(1) int ackInterval, @Min(1) int inFlightMax) {}
 	}
 
-	public record UploadProps (
-		@NotBlank String tempDir,
-		@Min(1) @Max(5000) int queueSize
-	) {}
+	public record UploadProps(@NotBlank String tempDir, @Min(1) @Max(5000) int queueSize) {}
 }

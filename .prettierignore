@@ -1,0 +1,11 @@
+# Ignore artifacts:
+.idea
+.mvn
+node_modules
+package-lock.json
+target
+webapp/build
+webapp/dist
+webapp/coverage
+webapp/node_modules
+webapp/package-lock.json

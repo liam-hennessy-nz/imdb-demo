@@ -1,13 +1,26 @@
-package com.example.imdbdemo.websocket.upload;
+package com.example.imdbdemo.websocket.upload.service;
 
 import com.example.imdbdemo.shared.config.props.AppProps;
 import com.example.imdbdemo.shared.enums.DatasetKey;
 import com.example.imdbdemo.websocket.upload.dto.UploadChunkDTO;
 import com.example.imdbdemo.websocket.upload.dto.UploadSessionDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.IncomingMessageDTO;
+import com.example.imdbdemo.websocket.upload.entity.Upload;
 import com.example.imdbdemo.websocket.upload.exception.UploadException;
 import com.example.imdbdemo.websocket.upload.exception.UploadUnsupportedException;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.PGConnection;
@@ -23,32 +36,16 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.Connection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class UploadHelper {
-	private static final Marker UPLOAD = MarkerFactory.getMarker("UPLOAD");
 
 	private final JdbcTemplate jdbcTemplate;
 	private final ObjectMapper objectMapper;
 	private final AppProps appProps;
 
-	public UploadHelper(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, AppProps appProps) {
-		this.jdbcTemplate = jdbcTemplate;
-		this.objectMapper = objectMapper;
-		this.appProps = appProps;
-	}
+	private static final Marker UPLOAD = MarkerFactory.getMarker("UPLOAD");
 
 	public void logInfo(@NonNull UUID uuid, @NonNull String message) {
 		log.info(UPLOAD, "[%s] - %s".formatted(uuid, message));

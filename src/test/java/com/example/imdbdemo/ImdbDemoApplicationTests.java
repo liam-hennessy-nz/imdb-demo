@@ -9,7 +9,5 @@ import org.springframework.test.context.web.WebAppConfiguration;
 class ImdbDemoApplicationTests {
 
 	@Test
-	void contextLoads() {
-	}
-
+	void contextLoads() {}
 }

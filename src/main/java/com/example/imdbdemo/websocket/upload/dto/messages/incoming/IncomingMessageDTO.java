@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
 	@JsonSubTypes.Type(value = MetadataMessageDTO.class, name = "meta"),
 	@JsonSubTypes.Type(value = ResumeMessageDTO.class, name = "res"),
-	@JsonSubTypes.Type(value = EofMessageDTO.class, name = "eof")
+	@JsonSubTypes.Type(value = EofMessageDTO.class, name = "eof"),
 })
 public sealed interface IncomingMessageDTO permits MetadataMessageDTO, ResumeMessageDTO, EofMessageDTO {
 	String type();

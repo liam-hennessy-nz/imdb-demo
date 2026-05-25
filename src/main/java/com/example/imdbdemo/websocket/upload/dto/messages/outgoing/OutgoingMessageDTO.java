@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@JsonSubTypes.Type(value = ConfigMessageDTO.class, name = "cfg"),
 	@JsonSubTypes.Type(value = AckMessageDTO.class, name = "ack"),
 	@JsonSubTypes.Type(value = ErrorMessageDTO.class, name = "err"),
-	@JsonSubTypes.Type(value = EndMessageDTO.class, name = "end")
+	@JsonSubTypes.Type(value = EndMessageDTO.class, name = "end"),
 })
 public sealed interface OutgoingMessageDTO permits ConfigMessageDTO, AckMessageDTO, ErrorMessageDTO, EndMessageDTO {
 	String type();

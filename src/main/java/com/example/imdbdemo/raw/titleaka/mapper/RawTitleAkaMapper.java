@@ -2,14 +2,14 @@ package com.example.imdbdemo.raw.titleaka.mapper;
 
 import com.example.imdbdemo.raw.titleaka.dto.RawTitleAkaDTO;
 import com.example.imdbdemo.raw.titleaka.entity.RawTitleAka;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class RawTitleAkaMapper {
+
 	public RawTitleAka mapToEntity(RawTitleAkaDTO rawTitleAkaDTO) {
 		RawTitleAka rawTitleAka = new RawTitleAka();
 		BeanUtils.copyProperties(rawTitleAkaDTO, rawTitleAka);

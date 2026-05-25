@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RawTitleCrewDTO {
+
 	private Long id;
 	private String tconst;
 	private String directors;

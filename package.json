@@ -1,0 +1,15 @@
+{
+	"private": true,
+	"scripts": {
+		"format": "prettier './**/*.{ts,tsx,js,jsx,json,css,java}' --check",
+		"format:fix": "prettier './**/*.{ts,tsx,js,jsx,json,css,java}' --write",
+		"clean": "rimraf target webapp/dist",
+		"clean:all": "rimraf target node_modules webapp/dist webapp/node_modules"
+	},
+	"devDependencies": {
+		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+		"prettier": "^3.8.1",
+		"prettier-plugin-java": "^2.9.4",
+		"rimraf": "^6.1.3"
+	}
+}

@@ -9,5 +9,4 @@ public class ImdbDemoApplication {
 	static void main(String[] args) {
 		SpringApplication.run(ImdbDemoApplication.class, args);
 	}
-
 }

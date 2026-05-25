@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 @Configuration
-@EnableConfigurationProperties({AppProps.class})
+@EnableConfigurationProperties({ AppProps.class })
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
-public class AppConfig {
-
-}
+public class AppConfig {}

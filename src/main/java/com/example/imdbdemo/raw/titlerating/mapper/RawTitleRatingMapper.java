@@ -2,14 +2,14 @@ package com.example.imdbdemo.raw.titlerating.mapper;
 
 import com.example.imdbdemo.raw.titlerating.dto.RawTitleRatingDTO;
 import com.example.imdbdemo.raw.titlerating.entity.RawTitleRating;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class RawTitleRatingMapper {
+
 	public RawTitleRating toEntity(RawTitleRatingDTO rawTitleRatingDTO) {
 		RawTitleRating rawTitleRating = new RawTitleRating();
 		BeanUtils.copyProperties(rawTitleRatingDTO, rawTitleRating);

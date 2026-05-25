@@ -7,24 +7,33 @@ import lombok.Data;
 @Entity
 @Table(name = "imdb_title_akas")
 public class RawTitleAka {
+
 	@Id
 	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	@Column
 	private String tconst;
+
 	@Column
 	private String ordering;
+
 	@Column(length = 1024)
 	private String title;
+
 	@Column
 	private String region;
+
 	@Column
 	private String language;
+
 	@Column
 	private String types;
+
 	@Column
 	private String attributes;
+
 	@Column
 	private String isOriginalTitle;
 }

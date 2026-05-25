@@ -6,6 +6,7 @@ import lombok.Data;
 @Builder
 @Data
 public class UploadChunkDTO {
+
 	public int index;
 	public byte[] data;
 }

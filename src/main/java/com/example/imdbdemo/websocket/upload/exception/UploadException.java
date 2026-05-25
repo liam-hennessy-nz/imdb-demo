@@ -1,9 +1,8 @@
 package com.example.imdbdemo.websocket.upload.exception;
 
 import com.example.imdbdemo.websocket.WebSocketException;
-import lombok.Getter;
-
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class UploadException extends WebSocketException {

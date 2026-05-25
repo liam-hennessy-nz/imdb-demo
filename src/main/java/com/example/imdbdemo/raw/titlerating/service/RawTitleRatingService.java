@@ -1,17 +1,22 @@
 package com.example.imdbdemo.raw.titlerating.service;
 
+import static com.example.imdbdemo.shared.PageHelper.*;
+
 import com.example.imdbdemo.raw.titlerating.dto.RawTitleRatingDTO;
 import com.example.imdbdemo.raw.titlerating.entity.QRawTitleRating;
 import com.example.imdbdemo.raw.titlerating.entity.RawTitleRating;
-import com.example.imdbdemo.shared.exception.IllegalFilterFieldException;
 import com.example.imdbdemo.raw.titlerating.exception.RawTitleRatingNotFoundException;
 import com.example.imdbdemo.raw.titlerating.mapper.RawTitleRatingMapper;
 import com.example.imdbdemo.raw.titlerating.repository.RawTitleRatingRepository;
+import com.example.imdbdemo.shared.exception.IllegalFilterFieldException;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,15 +24,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.example.imdbdemo.shared.PageHelper.*;
-
 @Service
 @RequiredArgsConstructor
 public class RawTitleRatingService {
+
 	private final JPAQueryFactory queryFactory;
 	private final RawTitleRatingRepository rawTitleRatingRepository;
 	private final RawTitleRatingMapper rawTitleRatingMapper;
@@ -56,16 +56,20 @@ public class RawTitleRatingService {
 	}
 
 	private Page<@NonNull RawTitleRatingDTO> search(
-		Predicate predicate, OrderSpecifier<?>[] orderSpecifiers, Pageable pageable
+		Predicate predicate,
+		OrderSpecifier<?>[] orderSpecifiers,
+		Pageable pageable
 	) {
 		List<RawTitleRatingDTO> results = queryFactory
-			.select(Projections.constructor(
-				RawTitleRatingDTO.class,
-				TITLE_RATING.id,
-				TITLE_RATING.tconst,
-				TITLE_RATING.averageRating,
-				TITLE_RATING.numVotes
-			))
+			.select(
+				Projections.constructor(
+					RawTitleRatingDTO.class,
+					TITLE_RATING.id,
+					TITLE_RATING.tconst,
+					TITLE_RATING.averageRating,
+					TITLE_RATING.numVotes
+				)
+			)
 			.from(TITLE_RATING)
 			.where(predicate)
 			.orderBy(orderSpecifiers)
@@ -73,11 +77,7 @@ public class RawTitleRatingService {
 			.limit(pageable.getPageSize())
 			.fetch();
 
-		Long total = queryFactory
-			.select(TITLE_RATING.count())
-			.from(TITLE_RATING)
-			.where(predicate)
-			.fetchOne();
+		Long total = queryFactory.select(TITLE_RATING.count()).from(TITLE_RATING).where(predicate).fetchOne();
 
 		return new PageImpl<>(results, pageable, total == null ? 0 : total);
 	}
@@ -91,13 +91,15 @@ public class RawTitleRatingService {
 
 	public RawTitleRatingDTO findById(Long id) {
 		Optional<RawTitleRating> rawTitleRating = rawTitleRatingRepository.findById(id);
-		return rawTitleRating.map(rawTitleRatingMapper::toDto)
+		return rawTitleRating
+			.map(rawTitleRatingMapper::toDto)
 			.orElseThrow(() -> new RawTitleRatingNotFoundException("id = %s".formatted(id)));
 	}
 
 	public RawTitleRatingDTO findByTconst(String tconst) {
 		Optional<RawTitleRating> rawTitleRating = rawTitleRatingRepository.findByTconst(tconst);
-		return rawTitleRating.map(rawTitleRatingMapper::toDto)
+		return rawTitleRating
+			.map(rawTitleRatingMapper::toDto)
 			.orElseThrow(() -> new RawTitleRatingNotFoundException("tconst = %s".formatted(tconst)));
 	}
 }

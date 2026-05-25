@@ -1,12 +1,11 @@
 package com.example.imdbdemo.shared.enums;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 @Getter
 public enum DatasetKey {
@@ -24,9 +23,9 @@ public enum DatasetKey {
 		this.value = value;
 	}
 
-	private static final Map<String, DatasetKey> BY_VALUE =
-		Arrays.stream(DatasetKey.values())
-			.collect(Collectors.toMap(k -> k.value, Function.identity()));
+	private static final Map<String, DatasetKey> BY_VALUE = Arrays.stream(DatasetKey.values()).collect(
+		Collectors.toMap((k) -> k.value, Function.identity())
+	);
 
 	public static Optional<DatasetKey> fromValue(String value) {
 		return Optional.ofNullable(BY_VALUE.get(value));

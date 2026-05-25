@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RawNameBasicDTO {
+
 	private Long id;
 	private String nconst;
 	private String primaryName;

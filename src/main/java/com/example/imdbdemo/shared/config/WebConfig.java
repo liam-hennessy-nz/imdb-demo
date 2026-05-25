@@ -10,14 +10,11 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Override
 	public void configurePathMatch(PathMatchConfigurer configurer) {
-		configurer.addPathPrefix("/api", handler -> handler.getPackage().getName().startsWith("com.example.imdbdemo"));
+		configurer.addPathPrefix("/api", (handler) -> handler.getPackage().getName().startsWith("com.example.imdbdemo"));
 	}
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**")
-			.allowedOrigins("*")
-			.allowedMethods("*")
-			.allowedHeaders("*");
+		registry.addMapping("/**").allowedOrigins("*").allowedMethods("*").allowedHeaders("*");
 	}
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RawTitleEpisodeDTO {
+
 	private Long id;
 	private String tconst;
 	private String parentTconst;

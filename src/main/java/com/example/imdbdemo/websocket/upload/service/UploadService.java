@@ -1,4 +1,4 @@
-package com.example.imdbdemo.websocket.upload;
+package com.example.imdbdemo.websocket.upload.service;
 
 import com.example.imdbdemo.shared.config.props.AppProps;
 import com.example.imdbdemo.shared.config.props.AppProps.WebSocketProps.ChunkProps;
@@ -8,20 +8,13 @@ import com.example.imdbdemo.websocket.upload.dto.messages.incoming.EofMessageDTO
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.MetadataMessageDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.ResumeMessageDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.outgoing.*;
+import com.example.imdbdemo.websocket.upload.entity.Upload;
+import com.example.imdbdemo.websocket.upload.entity.UploadErrorCode;
 import com.example.imdbdemo.websocket.upload.exception.UploadException;
 import com.example.imdbdemo.websocket.upload.exception.UploadInterruptedException;
 import com.example.imdbdemo.websocket.upload.exception.UploadNotFoundException;
 import com.example.imdbdemo.websocket.upload.exception.UploadUnsupportedException;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.AbstractWebSocketHandler;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-
+import com.example.imdbdemo.websocket.upload.repository.UploadRepository;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -35,11 +28,21 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.AbstractWebSocketHandler;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class UploadService extends AbstractWebSocketHandler {
-	private final Map<WebSocketSession, UploadSessionDTO> uploadSessions = new ConcurrentHashMap<>();
 
 	private final ObjectMapper objectMapper;
 	private final ExecutorService workerExecutor;
@@ -47,13 +50,7 @@ public class UploadService extends AbstractWebSocketHandler {
 	private final UploadRepository uploadRepository;
 	private final UploadHelper uploadHelper;
 
-	public UploadService(ObjectMapper objectMapper, ExecutorService workerExecutor, AppProps appProps, UploadRepository uploadRepository, UploadHelper uploadHelper) {
-		this.appProps = appProps;
-		this.objectMapper = objectMapper;
-		this.workerExecutor = workerExecutor;
-		this.uploadRepository = uploadRepository;
-		this.uploadHelper = uploadHelper;
-	}
+	private final Map<WebSocketSession, UploadSessionDTO> uploadSessions = new ConcurrentHashMap<>();
 
 	public void startUpload(@NonNull WebSocketSession session, @NonNull MetadataMessageDTO meta) {
 		// Generate new UUID for this upload
@@ -85,7 +82,12 @@ public class UploadService extends AbstractWebSocketHandler {
 		// Initialise file channel for writing to temp file and add it to upload session
 		FileChannel channel;
 		try {
-			channel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+			channel = FileChannel.open(
+				path,
+				StandardOpenOption.CREATE,
+				StandardOpenOption.WRITE,
+				StandardOpenOption.TRUNCATE_EXISTING
+			);
 		} catch (IOException ex) {
 			throw new UploadException(uuid, "Failed to open file channel to new upload file", ex);
 		}
@@ -99,7 +101,13 @@ public class UploadService extends AbstractWebSocketHandler {
 		}
 
 		// Create upload config
-		ConfigMessageDTO config = new ConfigMessageDTO(uuid, 0, upload.getChunkByteSize(), upload.getChunkAckInterval(), upload.getChunkInFlightMax());
+		ConfigMessageDTO config = new ConfigMessageDTO(
+			uuid,
+			0,
+			upload.getChunkByteSize(),
+			upload.getChunkAckInterval(),
+			upload.getChunkInFlightMax()
+		);
 
 		// Send config over WebSocket
 		sendMessage(session, uuid, config);
@@ -113,10 +121,14 @@ public class UploadService extends AbstractWebSocketHandler {
 		// TODO: validate res
 
 		// Check database for partial upload
-		Upload upload = uploadRepository.findById(uuid).orElseThrow(() -> new UploadNotFoundException(uuid, "Upload " + "session was not found in database"));
+		Upload upload = uploadRepository
+			.findById(uuid)
+			.orElseThrow(() -> new UploadNotFoundException(uuid, "Upload " + "session was not found in database"));
 
 		// Check disk for partial upload
-		Path path = uploadHelper.findUploadPath(uuid).orElseThrow(() -> new UploadNotFoundException(uuid, "Upload" + " session was not found on disk"));
+		Path path = uploadHelper
+			.findUploadPath(uuid)
+			.orElseThrow(() -> new UploadNotFoundException(uuid, "Upload" + " session was not found on disk"));
 
 		// Get partial file size to know where to continue from
 		long offset;
@@ -146,7 +158,13 @@ public class UploadService extends AbstractWebSocketHandler {
 		}
 
 		// Create upload config
-		ConfigMessageDTO cfg = new ConfigMessageDTO(uuid, chunkIndex, upload.getChunkByteSize(), upload.getChunkAckInterval(), upload.getChunkInFlightMax());
+		ConfigMessageDTO cfg = new ConfigMessageDTO(
+			uuid,
+			chunkIndex,
+			upload.getChunkByteSize(),
+			upload.getChunkAckInterval(),
+			upload.getChunkInFlightMax()
+		);
 
 		// Send config over WebSocket
 		sendMessage(session, uuid, cfg);
@@ -158,11 +176,15 @@ public class UploadService extends AbstractWebSocketHandler {
 		uploadHelper.logInfo(uuid, "Received 'EOF' message");
 
 		// Check session still exists in memory
-		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() -> new UploadNotFoundException(uuid, "Upload session was not found in memory"));
+		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() ->
+			new UploadNotFoundException(uuid, "Upload session was not found in memory")
+		);
 		uploadSession.isEofReceived.set(true);
 
 		// Check upload still exists on disk
-		Path path = uploadHelper.findUploadPath(uuid).orElseThrow(() -> new UploadNotFoundException(uuid, "Upload session was not found on disk"));
+		Path path = uploadHelper
+			.findUploadPath(uuid)
+			.orElseThrow(() -> new UploadNotFoundException(uuid, "Upload session was not found on disk"));
 
 		String tableName = uploadSession.getUpload().getDatasetKey();
 		String copySql = Optional.ofNullable(uploadHelper.determineCopySql(tableName)).orElseThrow(() ->
@@ -186,7 +208,9 @@ public class UploadService extends AbstractWebSocketHandler {
 
 	public void queueUploadChunk(@NonNull WebSocketSession session, @NonNull UploadChunkDTO chunk) {
 		// Check session still exists in memory
-		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() -> new UploadNotFoundException(UUID.fromString(session.getId()), "Upload session was not found in memory"));
+		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() ->
+			new UploadNotFoundException(UUID.fromString(session.getId()), "Upload session was not found in memory")
+		);
 
 		UUID uuid = uploadSession.getUpload().getId();
 		if (uploadSession.chunkQueue.contains(chunk)) {
@@ -256,14 +280,26 @@ public class UploadService extends AbstractWebSocketHandler {
 			session.sendMessage(new TextMessage(objectMapper.writeValueAsString(msg)));
 			uploadHelper.logInfo(uuid, "Sent '%s' message".formatted(msg.type()));
 		} catch (JacksonException ex) {
-			sendErrorAndCloseSession(session, uuid, "Failed to stringify '%s' message".formatted(msg.type()), UploadErrorCode.SERVER_ERROR);
+			sendErrorAndCloseSession(
+				session,
+				uuid,
+				"Failed to stringify '%s' message".formatted(msg.type()),
+				UploadErrorCode.SERVER_ERROR
+			);
 		} catch (IOException ex) {
-			sendErrorAndCloseSession(session, uuid, "Failed to send '%s' message".formatted(msg.type()), UploadErrorCode.SERVER_ERROR);
+			sendErrorAndCloseSession(
+				session,
+				uuid,
+				"Failed to send '%s' message".formatted(msg.type()),
+				UploadErrorCode.SERVER_ERROR
+			);
 		}
 	}
 
 	public void closeSession(@NonNull WebSocketSession session) {
-		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() -> new UploadNotFoundException(UUID.fromString(session.getId()), "Upload session was not found in memory"));
+		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() ->
+			new UploadNotFoundException(UUID.fromString(session.getId()), "Upload session was not found in memory")
+		);
 		UUID uuid = uploadSession.getUpload().getId();
 
 		try {
@@ -273,14 +309,21 @@ public class UploadService extends AbstractWebSocketHandler {
 		}
 	}
 
-	public void sendErrorAndCloseSession(@NonNull WebSocketSession session, @NonNull UUID uuid, @NonNull String reason, int code) {
+	public void sendErrorAndCloseSession(
+		@NonNull WebSocketSession session,
+		@NonNull UUID uuid,
+		@NonNull String reason,
+		int code
+	) {
 		ErrorMessageDTO err = new ErrorMessageDTO(code, reason);
 		sendMessage(session, uuid, err);
 		closeSession(session);
 	}
 
 	public void cleanUpSession(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
-		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() -> new UploadNotFoundException(UUID.fromString(session.getId()), "Upload session was not found in memory"));
+		UploadSessionDTO uploadSession = Optional.ofNullable(uploadSessions.get(session)).orElseThrow(() ->
+			new UploadNotFoundException(UUID.fromString(session.getId()), "Upload session was not found in memory")
+		);
 		UUID uuid = uploadSession.getUpload().getId();
 
 		String reason = Optional.ofNullable(status.getReason()).orElse("Unknown");

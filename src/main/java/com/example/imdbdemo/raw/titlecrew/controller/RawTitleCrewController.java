@@ -2,24 +2,22 @@ package com.example.imdbdemo.raw.titlecrew.controller;
 
 import com.example.imdbdemo.raw.titlecrew.dto.RawTitleCrewDTO;
 import com.example.imdbdemo.raw.titlecrew.service.RawTitleCrewService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/raw/title_crew")
 public class RawTitleCrewController {
+
 	private final RawTitleCrewService rawTitleCrewService;
 
 	@GetMapping
-	public ResponseEntity<Page<RawTitleCrewDTO>> findAll(
-		Pageable pageable, @RequestParam Map<String, String> params
-	) {
+	public ResponseEntity<Page<RawTitleCrewDTO>> findAll(Pageable pageable, @RequestParam Map<String, String> params) {
 		return ResponseEntity.ok(rawTitleCrewService.findAll(pageable, params));
 	}
 

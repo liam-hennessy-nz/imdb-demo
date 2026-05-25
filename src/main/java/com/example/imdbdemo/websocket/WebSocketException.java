@@ -1,11 +1,11 @@
 package com.example.imdbdemo.websocket;
 
-import lombok.Getter;
-
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class WebSocketException extends RuntimeException {
+
 	private final UUID uuid;
 
 	public WebSocketException(UUID uuid, String message) {

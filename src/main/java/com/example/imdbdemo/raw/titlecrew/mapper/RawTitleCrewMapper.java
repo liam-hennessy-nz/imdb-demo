@@ -2,14 +2,14 @@ package com.example.imdbdemo.raw.titlecrew.mapper;
 
 import com.example.imdbdemo.raw.titlecrew.dto.RawTitleCrewDTO;
 import com.example.imdbdemo.raw.titlecrew.entity.RawTitleCrew;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class RawTitleCrewMapper {
+
 	public RawTitleCrew mapToEntity(RawTitleCrewDTO rawTitleCrewDTO) {
 		RawTitleCrew rawTitleCrew = new RawTitleCrew();
 		BeanUtils.copyProperties(rawTitleCrewDTO, rawTitleCrew);
@@ -24,17 +24,17 @@ public class RawTitleCrewMapper {
 
 	public List<RawTitleCrew> mapToEntityList(List<RawTitleCrewDTO> rawTitleCrewDTOList) {
 		List<RawTitleCrew> rawTitleCrewList = new ArrayList<>();
-			for (RawTitleCrewDTO rawTitleCrewDTO : rawTitleCrewDTOList) {
-				rawTitleCrewList.add(mapToEntity(rawTitleCrewDTO));
-			}
-			return rawTitleCrewList;
+		for (RawTitleCrewDTO rawTitleCrewDTO : rawTitleCrewDTOList) {
+			rawTitleCrewList.add(mapToEntity(rawTitleCrewDTO));
+		}
+		return rawTitleCrewList;
 	}
 
 	public List<RawTitleCrewDTO> mapToDtoList(List<RawTitleCrew> rawTitleCrewList) {
 		List<RawTitleCrewDTO> rawTitleCrewDTOList = new ArrayList<>();
-			for (RawTitleCrew rawTitleCrew : rawTitleCrewList) {
-				rawTitleCrewDTOList.add(mapToDto(rawTitleCrew));
-			}
-			return rawTitleCrewDTOList;
+		for (RawTitleCrew rawTitleCrew : rawTitleCrewList) {
+			rawTitleCrewDTOList.add(mapToDto(rawTitleCrew));
+		}
+		return rawTitleCrewDTOList;
 	}
 }

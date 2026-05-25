@@ -1,4 +1,4 @@
-package com.example.imdbdemo.websocket.upload;
+package com.example.imdbdemo.websocket.upload.service;
 
 import com.example.imdbdemo.websocket.upload.dto.UploadChunkDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.EofMessageDTO;
@@ -6,10 +6,16 @@ import com.example.imdbdemo.websocket.upload.dto.messages.incoming.IncomingMessa
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.MetadataMessageDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.incoming.ResumeMessageDTO;
 import com.example.imdbdemo.websocket.upload.dto.messages.outgoing.ErrorMessageDTO;
+import com.example.imdbdemo.websocket.upload.entity.UploadErrorCode;
 import com.example.imdbdemo.websocket.upload.exception.UploadException;
 import com.example.imdbdemo.websocket.upload.exception.UploadNotFoundException;
 import com.example.imdbdemo.websocket.upload.exception.UploadUnsupportedException;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
@@ -18,24 +24,15 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-
+@RequiredArgsConstructor
 @Component
 public class UploadHandler extends AbstractWebSocketHandler {
+
 	private final ExecutorService messageExecutor;
 	private final UploadService uploadService;
 	private final UploadHelper uploadHelper;
 
 	private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
-
-	public UploadHandler(ExecutorService messageExecutor, UploadHelper uploadHelper, UploadService uploadService) {
-		this.messageExecutor = messageExecutor;
-		this.uploadService = uploadService;
-		this.uploadHelper = uploadHelper;
-	}
 
 	@Override
 	public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -71,11 +68,21 @@ public class UploadHandler extends AbstractWebSocketHandler {
 			incomingMessage = uploadHelper.parseIncomingMessage(concurrentSession, message);
 		} catch (UploadUnsupportedException ex) {
 			uploadHelper.logWarn(ex.getUuid(), ex.getMessage());
-			uploadService.sendErrorAndCloseSession(concurrentSession, ex.getUuid(), ex.getMessage(), UploadErrorCode.BAD_REQUEST);
+			uploadService.sendErrorAndCloseSession(
+				concurrentSession,
+				ex.getUuid(),
+				ex.getMessage(),
+				UploadErrorCode.BAD_REQUEST
+			);
 			return;
 		} catch (UploadException ex) {
 			uploadHelper.logError(ex.getUuid(), ex.getMessage(), ex);
-			uploadService.sendErrorAndCloseSession(concurrentSession, ex.getUuid(), ex.getMessage(), UploadErrorCode.SERVER_ERROR);
+			uploadService.sendErrorAndCloseSession(
+				concurrentSession,
+				ex.getUuid(),
+				ex.getMessage(),
+				UploadErrorCode.SERVER_ERROR
+			);
 			return;
 		}
 
@@ -91,10 +98,20 @@ public class UploadHandler extends AbstractWebSocketHandler {
 			uploadService.sendMessage(concurrentSession, ex.getUuid(), err);
 		} catch (UploadUnsupportedException ex) {
 			uploadHelper.logWarn(ex.getUuid(), ex.getMessage());
-			uploadService.sendErrorAndCloseSession(concurrentSession, ex.getUuid(), ex.getMessage(), UploadErrorCode.BAD_REQUEST);
+			uploadService.sendErrorAndCloseSession(
+				concurrentSession,
+				ex.getUuid(),
+				ex.getMessage(),
+				UploadErrorCode.BAD_REQUEST
+			);
 		} catch (UploadException ex) {
 			uploadHelper.logError(ex.getUuid(), ex.getMessage(), ex);
-			uploadService.sendErrorAndCloseSession(concurrentSession, ex.getUuid(), ex.getMessage(), UploadErrorCode.SERVER_ERROR);
+			uploadService.sendErrorAndCloseSession(
+				concurrentSession,
+				ex.getUuid(),
+				ex.getMessage(),
+				UploadErrorCode.SERVER_ERROR
+			);
 		}
 	}
 
@@ -113,7 +130,12 @@ public class UploadHandler extends AbstractWebSocketHandler {
 			uploadChunk = uploadHelper.parseUploadChunk(concurrentSession, message);
 		} catch (UploadUnsupportedException ex) {
 			uploadHelper.logWarn(ex.getUuid(), ex.getMessage());
-			uploadService.sendErrorAndCloseSession(concurrentSession, ex.getUuid(), ex.getMessage(), UploadErrorCode.BAD_REQUEST);
+			uploadService.sendErrorAndCloseSession(
+				concurrentSession,
+				ex.getUuid(),
+				ex.getMessage(),
+				UploadErrorCode.BAD_REQUEST
+			);
 			return;
 		}
 
@@ -121,7 +143,12 @@ public class UploadHandler extends AbstractWebSocketHandler {
 			uploadService.queueUploadChunk(concurrentSession, uploadChunk);
 		} catch (UploadException ex) {
 			uploadHelper.logError(ex.getUuid(), ex.getMessage(), ex);
-			uploadService.sendErrorAndCloseSession(concurrentSession, ex.getUuid(), ex.getMessage(), UploadErrorCode.SERVER_ERROR);
+			uploadService.sendErrorAndCloseSession(
+				concurrentSession,
+				ex.getUuid(),
+				ex.getMessage(),
+				UploadErrorCode.SERVER_ERROR
+			);
 		}
 	}
 }

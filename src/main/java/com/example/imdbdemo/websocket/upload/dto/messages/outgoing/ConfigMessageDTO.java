@@ -2,7 +2,6 @@ package com.example.imdbdemo.websocket.upload.dto.messages.outgoing;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-
 import java.util.UUID;
 
 public record ConfigMessageDTO(

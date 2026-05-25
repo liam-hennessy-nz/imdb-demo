@@ -2,14 +2,14 @@ package com.example.imdbdemo.raw.titlebasic.mapper;
 
 import com.example.imdbdemo.raw.titlebasic.dto.RawTitleBasicDTO;
 import com.example.imdbdemo.raw.titlebasic.entity.RawTitleBasic;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class RawTitleBasicMapper {
+
 	public RawTitleBasic mapToEntity(RawTitleBasicDTO rawTitleBasicDTO) {
 		RawTitleBasic rawTitleBasic = new RawTitleBasic();
 		BeanUtils.copyProperties(rawTitleBasicDTO, rawTitleBasic);

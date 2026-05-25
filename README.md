@@ -18,16 +18,15 @@ inefficiencies, or areas with overkill functionality. For the most part, the mai
 
 ## Prerequisites
 
-- IntelliJ IDEA – Not required, but is what I have been using for development. An IDE that supports Maven at least.
+- Maven – For downloading backend dependencies and building QueryDSL classes.
+- Java 25+ – For running the backend.
+- Node.js / NPM – For downloading frontend dependencies and running the frontend.
 - Docker – Not required, but a Docker Compose file is provided which will make spinning up the database a lot easier.
 - PostgreSQL 18+ – Database the backend has been built around. As noted above, recommend using Docker to set this up.
-- NPM – For downloading frontend dependencies and running the frontend.
-- Java 25+ – For running the backend.
-- Maven – For downloading backend dependencies and building backend QueryDSL classes.
 
 ## Steps
 
-First, of course, clone the repo.
+First, clone the repo.
 
 ### Backend
 
@@ -40,7 +39,7 @@ First, of course, clone the repo.
 3. Run `mvn install` to generate the QueryDSL classes.
 4. Create a run configuration for `ImdbDemoApplication` and run it.
 5. Depending on how the app is deployed (inside WSL for instance), you may need to change the host
-   [environment variable](#environment-variables) to `0.0.0.0` so that the frontend can connect to the backend.
+   [environment variable](#environment-variables) to `0.0.0.0` for the frontend to be able to connect to the backend.
 
 ### Frontend
 
@@ -60,26 +59,26 @@ files directly.
 <details>
   <summary>Expand to see backend variables.</summary>
 
-   | Variable                           | Default                       | Description                                             |
-   |------------------------------------|-------------------------------|---------------------------------------------------------|
-   | `IMDB_DEMO_HOST`                   | `localhost`                   | The hostname which the backend will bind to             |
-   | `IMDB_DEMO_PORT`                   | `8443`                        | The port which the backend will bind to                 |
-   | `IMDB_DEMO_USE_TLS`                | `false`                       | Whether the backend will use TLS                        |
-   | `IMDB_DEMO_TEMP_DIR`               | `/tmp/imdb-demo`              | The directory where temporary data will live            |
-   | `IMDB_DEMO_DB_HOST`                | `localhost`                   | The hostname which the database will bind to            |
-   | `IMDB_DEMO_DB_PORT`                | `5432`                        | The port which the database will bind to                |
-   | `IMDB_DEMO_DB_NAME`                | `dev_imdb_demo`               | The name the database will have                         |
-   | `IMDB_DEMO_DB_USER`                | `postgres`                    | The username of the database connection                 |
-   | `IMDB_DEMO_DB_PASS`                | `password`                    | The password of the database connection                 |
-   | `IMDB_DEMO_KS_PATH`                | `classpath:tls/imdb-demo.p12` | The path to the TLS keystore                            |
-   | `IMDB_DEMO_KS_TYPE`                | `PKCS12`                      | The type of the TLS keystore                            |
-   | `IMDB_DEMO_KS_ALIAS`               | `imdb-demo`                   | The alias of the TLS keystore                           |
-   | `IMDB_DEMO_KS_PASS`                | `changeit`                    | The password to the TLS keystore                        |
-   | `IMDB_DEMO_WS_CHUNK_BYTE_SIZE`     | `1048576` (1MiB)              | The size upload BLOBs will be broken up in              |
-   | `IMDB_DEMO_WS_CHUNK_ACK_INTERVAL`  | `20`                          | The number of chunks to process before sending an ACK   |
-   | `IMDB_DEMO_WS_CHUNK_IN_FLIGHT_MAX` | `150`                         | The max number of unACKed chunks that can exist         |
-   | `IMDB_DEMO_UL_TEMP_DIR`            | `/tmp/imdb-demo/uploads`      | The directory where partially uploaded data will live   |
-   | `IMDB_DEMO_UL_QUEUE_SIZE`          | `2000`                        | The size of the backend worker queue processing uploads |
+| Variable                           | Default                       | Description                                             |
+| ---------------------------------- | ----------------------------- | ------------------------------------------------------- |
+| `IMDB_DEMO_HOST`                   | `localhost`                   | The hostname which the backend will bind to             |
+| `IMDB_DEMO_PORT`                   | `8443`                        | The port which the backend will bind to                 |
+| `IMDB_DEMO_USE_TLS`                | `false`                       | Whether the backend will use TLS                        |
+| `IMDB_DEMO_TEMP_DIR`               | `/tmp/imdb-demo`              | The directory where temporary data will live            |
+| `IMDB_DEMO_DB_HOST`                | `localhost`                   | The hostname which the database will bind to            |
+| `IMDB_DEMO_DB_PORT`                | `5432`                        | The port which the database will bind to                |
+| `IMDB_DEMO_DB_NAME`                | `dev_imdb_demo`               | The name the database will have                         |
+| `IMDB_DEMO_DB_USER`                | `postgres`                    | The username of the database connection                 |
+| `IMDB_DEMO_DB_PASS`                | `password`                    | The password of the database connection                 |
+| `IMDB_DEMO_KS_PATH`                | `classpath:tls/imdb-demo.p12` | The path to the TLS keystore                            |
+| `IMDB_DEMO_KS_TYPE`                | `PKCS12`                      | The type of the TLS keystore                            |
+| `IMDB_DEMO_KS_ALIAS`               | `imdb-demo`                   | The alias of the TLS keystore                           |
+| `IMDB_DEMO_KS_PASS`                | `changeit`                    | The password to the TLS keystore                        |
+| `IMDB_DEMO_WS_CHUNK_BYTE_SIZE`     | `1048576` (1MiB)              | The size upload BLOBs will be broken up in              |
+| `IMDB_DEMO_WS_CHUNK_ACK_INTERVAL`  | `20`                          | The number of chunks to process before sending an ACK   |
+| `IMDB_DEMO_WS_CHUNK_IN_FLIGHT_MAX` | `150`                         | The max number of unACKed chunks that can exist         |
+| `IMDB_DEMO_UL_TEMP_DIR`            | `/tmp/imdb-demo/uploads`      | The directory where partially uploaded data will live   |
+| `IMDB_DEMO_UL_QUEUE_SIZE`          | `2000`                        | The size of the backend worker queue processing uploads |
 
 </details>
 
@@ -88,15 +87,15 @@ files directly.
 <details>
   <summary>Expand to see frontend variables.</summary>
 
-   | Variable            | Default                       | Description                                  |
-   |---------------------|-------------------------------|----------------------------------------------|
-   | `VITE_HOST`         | `localhost`                   | The hostname which the frontend will bind to |
-   | `VITE_PORT`         | `5173`                        | The port which the frontend will bind to     |
-   | `VITE_USE_TLS`      | `false`                       | Whether the frontend will use TLS            |
-   | `VITE_API_HOST`     | `localhost`                   | The hostname which the backend is bound to   |
-   | `VITE_API_PORT`     | `8443`                        | The port which the backend is bound to       |
-   | `VITE_TLS_KEY_PATH` | `tls/imdb-demo-key.pem`       | The path to the TLS key                      |
-   | `VITE_TLS_CRT_PATH` | `tls/imdb-demo-fullchain.pem` | The path to the TLS certificate              |
+| Variable            | Default                       | Description                                  |
+| ------------------- | ----------------------------- | -------------------------------------------- |
+| `VITE_HOST`         | `localhost`                   | The hostname which the frontend will bind to |
+| `VITE_PORT`         | `5173`                        | The port which the frontend will bind to     |
+| `VITE_USE_TLS`      | `false`                       | Whether the frontend will use TLS            |
+| `VITE_API_HOST`     | `localhost`                   | The hostname which the backend is bound to   |
+| `VITE_API_PORT`     | `8443`                        | The port which the backend is bound to       |
+| `VITE_TLS_KEY_PATH` | `tls/imdb-demo-key.pem`       | The path to the TLS key                      |
+| `VITE_TLS_CRT_PATH` | `tls/imdb-demo-fullchain.pem` | The path to the TLS certificate              |
 
 </details>
 

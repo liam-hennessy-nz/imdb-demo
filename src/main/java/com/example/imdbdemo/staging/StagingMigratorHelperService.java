@@ -1,15 +1,14 @@
 package com.example.imdbdemo.staging;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -24,15 +23,15 @@ public class StagingMigratorHelperService {
 		Map<String, Integer> genreIdMap = new HashMap<>();
 
 		try (
-			ResultSet genreRs = conn.createStatement().executeQuery("""
-				SELECT DISTINCT INITCAP(LOWER(TRIM(g))) AS genre
-				FROM imdb_title_basics,
-				     LATERAL UNNEST(string_to_array(genres, ',')) AS g
-				WHERE genres IS NOT NULL
-			""");
-			ResultSet mapRs = conn.createStatement().executeQuery(
-				"SELECT id, name FROM genres"
+			ResultSet genreRs = conn.createStatement().executeQuery(
+				"""
+					SELECT DISTINCT INITCAP(LOWER(TRIM(g))) AS genre
+					FROM imdb_title_basics,
+					     LATERAL UNNEST(string_to_array(genres, ',')) AS g
+					WHERE genres IS NOT NULL
+				"""
 			);
+			ResultSet mapRs = conn.createStatement().executeQuery("SELECT id, name FROM genres");
 			PreparedStatement genreInsert = conn.prepareStatement(
 				"INSERT INTO genres (name) VALUES (?) ON CONFLICT DO NOTHING"
 			)
@@ -48,7 +47,6 @@ public class StagingMigratorHelperService {
 			while (mapRs.next()) {
 				genreIdMap.put(mapRs.getString("name").toLowerCase(), mapRs.getInt("id"));
 			}
-
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to insert genres", e);
 		}
@@ -65,18 +63,16 @@ public class StagingMigratorHelperService {
 		Map<String, Integer> typeIdMap = new HashMap<>();
 
 		try (
-			ResultSet typeRs = conn.createStatement().executeQuery("""
-				SELECT DISTINCT INITCAP(LOWER(TRIM(t))) AS type
-				FROM imdb_title_basics,
-				     LATERAL UNNEST(string_to_array(title_type, ',')) AS t
-				WHERE title_type IS NOT NULL
-			""");
-			ResultSet mapRs = conn.createStatement().executeQuery(
-				"SELECT id, name FROM types"
+			ResultSet typeRs = conn.createStatement().executeQuery(
+				"""
+					SELECT DISTINCT INITCAP(LOWER(TRIM(t))) AS type
+					FROM imdb_title_basics,
+					     LATERAL UNNEST(string_to_array(title_type, ',')) AS t
+					WHERE title_type IS NOT NULL
+				"""
 			);
-			PreparedStatement typeInsert = conn.prepareStatement(
-				"INSERT INTO types (name) VALUES (?) ON CONFLICT DO NOTHING"
-			)
+			ResultSet mapRs = conn.createStatement().executeQuery("SELECT id, name FROM types");
+			PreparedStatement typeInsert = conn.prepareStatement("INSERT INTO types (name) VALUES (?) ON CONFLICT DO NOTHING")
 		) {
 			// Batch insert unique types
 			while (typeRs.next()) {
@@ -89,7 +85,6 @@ public class StagingMigratorHelperService {
 			while (mapRs.next()) {
 				typeIdMap.put(mapRs.getString("name").toLowerCase(), mapRs.getInt("id"));
 			}
-
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to insert types", e);
 		}
@@ -104,23 +99,29 @@ public class StagingMigratorHelperService {
 	 * @param typeIdMap Map containing types and their IDs.
 	 * @return Map which contains the unique titles linked to their new IDs.
 	 */
-	public Map<String, Integer> migrateTitles(Connection conn, Map<String, Integer> genreIdMap, Map<String, Integer> typeIdMap) {
+	public Map<String, Integer> migrateTitles(
+		Connection conn,
+		Map<String, Integer> genreIdMap,
+		Map<String, Integer> typeIdMap
+	) {
 		Map<String, Integer> titleIdMap = new HashMap<>();
 
 		try (
-			ResultSet titleRs = conn.createStatement().executeQuery("""
-				SELECT DISTINCT
-					TRIM(tconst) AS tconst,
-					TRIM(title_type) AS title_type,
-					TRIM(primary_title) AS primary_title,
-					TRIM(original_title) AS original_title,
-					is_adult,
-					NULLIF(TRIM(start_year), '')::int AS start_year,
-					NULLIF(TRIM(end_year), '')::int AS end_year,
-					NULLIF(TRIM(runtime_minutes), '')::int AS runtime_minutes,
-					genres
-				FROM imdb_title_basics
-			""");
+			ResultSet titleRs = conn.createStatement().executeQuery(
+				"""
+					SELECT DISTINCT
+						TRIM(tconst) AS tconst,
+						TRIM(title_type) AS title_type,
+						TRIM(primary_title) AS primary_title,
+						TRIM(original_title) AS original_title,
+						is_adult,
+						NULLIF(TRIM(start_year), '')::int AS start_year,
+						NULLIF(TRIM(end_year), '')::int AS end_year,
+						NULLIF(TRIM(runtime_minutes), '')::int AS runtime_minutes,
+						genres
+					FROM imdb_title_basics
+				"""
+			);
 			PreparedStatement titleInsert = conn.prepareStatement(
 				"INSERT INTO titles (primary_title, original_title, is_adult, start_year, end_year, runtime_minutes) VALUES (?, ?, ?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS
@@ -182,7 +183,6 @@ public class StagingMigratorHelperService {
 
 			genreTitlesInsert.executeBatch();
 			typeTitlesInsert.executeBatch();
-
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to bulk insert titles", e);
 		}
