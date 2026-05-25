@@ -1,10 +1,14 @@
-import { RAW_NAME_BASIC_CONFIG, type RawNameBasic } from '../../raw/entity/RawNameBasic.ts';
-import { RAW_TITLE_AKA_CONFIG, type RawTitleAka } from '../../raw/entity/RawTitleAka.ts';
-import { RAW_TITLE_BASIC_CONFIG, type RawTitleBasic } from '../../raw/entity/RawTitleBasic.ts';
-import { RAW_TITLE_CREW_CONFIG, type RawTitleCrew } from '../../raw/entity/RawTitleCrew.ts';
-import { RAW_TITLE_EPISODE_CONFIG, type RawTitleEpisode } from '../../raw/entity/RawTitleEpisode.ts';
-import { RAW_TITLE_PRINCIPAL_CONFIG, type RawTitlePrincipal } from '../../raw/entity/RawTitlePrincipal.ts';
-import { RAW_TITLE_RATING_CONFIG, type RawTitleRating } from '../../raw/entity/RawTitleRating.ts';
+import type { GridColType } from '@mui/x-data-grid';
+import { RAW_NAME_BASIC_CONFIG, type RawNameBasic } from '../../raw/namebasic/entity/RawNameBasic.ts';
+import { RAW_TITLE_AKA_CONFIG, type RawTitleAka } from '../../raw/titleaka/entity/RawTitleAka.ts';
+import { RAW_TITLE_BASIC_CONFIG, type RawTitleBasic } from '../../raw/titlebasic/entity/RawTitleBasic.ts';
+import { RAW_TITLE_CREW_CONFIG, type RawTitleCrew } from '../../raw/titlecrew/entity/RawTitleCrew.ts';
+import { RAW_TITLE_EPISODE_CONFIG, type RawTitleEpisode } from '../../raw/titleepisode/entity/RawTitleEpisode.ts';
+import {
+	RAW_TITLE_PRINCIPAL_CONFIG,
+	type RawTitlePrincipal,
+} from '../../raw/titleprincipal/entity/RawTitlePrincipal.ts';
+import { RAW_TITLE_RATING_CONFIG, type RawTitleRating } from '../../raw/titlerating/entity/RawTitleRating.ts';
 
 export interface DatasetMap {
 	rawNameBasic: RawNameBasic;
@@ -31,7 +35,9 @@ export const DATASET_CONFIGS: Record<DatasetKey, DatasetConfig<Datasets>> = {
 
 interface KeyConfig {
 	label: string;
+	type: GridColType;
 	flex: number;
+	editable: boolean;
 }
 
 export interface DatasetConfig<T extends Datasets> {

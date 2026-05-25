@@ -1,3 +1,6 @@
+import axios from 'axios';
+import type { PageRequest } from '../dto/PageRequest.ts';
+
 /**
  * Function parses an unknown object into an Error message string.
  * @param ex The unknown object.
@@ -28,6 +31,19 @@ export function parseError(ex: unknown) {
 	}
 }
 
+export function parseAxiosError(ex: unknown) {
+	if (axios.isAxiosError(ex)) {
+		const status = ex.response !== undefined ? ` [${ex.response.status.toString()}]` : '';
+		return `Axios error${status}: ${ex.message !== '' ? ex.message : 'Unknown error'}`;
+	} else {
+		return parseErrorMessage(ex);
+	}
+}
+
+export function isAbortError(ex: unknown) {
+	return ex instanceof Error && axios.isAxiosError(ex.cause) && ex.cause.code === 'ERR_CANCELED';
+}
+
 /**
  * Function parses an unknown object into the cause of a new Error with a message.
  * @param message Message to use in the new Error.
@@ -47,6 +63,30 @@ export function formatBytes(bytes: number, decimals = 2) {
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
 
 	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
+}
+
+export function toUrlSearchParams(request: PageRequest) {
+	const urlSearchParams = new URLSearchParams();
+	urlSearchParams.set('page', request.pagination.page.toString());
+	urlSearchParams.set('size', request.pagination.pageSize.toString());
+
+	for (const sort of request.sort) {
+		if (sort.sort === undefined || sort.sort === null) continue;
+		urlSearchParams.append('sort', `${sort.field},${sort.sort}`);
+	}
+
+	for (const filter of request.filter.items) {
+		if (
+			filter.operator !== 'isEmpty' &&
+			filter.operator !== 'isNotEmpty' &&
+			(filter.value === undefined || filter.value === null)
+		) {
+			continue;
+		}
+		urlSearchParams.append(`${filter.field}[${filter.operator}]`, String(filter.value));
+	}
+
+	return urlSearchParams;
 }
 
 /**

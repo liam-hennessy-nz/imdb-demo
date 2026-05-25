@@ -94,7 +94,7 @@ export async function parseDatasetKey(file: File): Promise<DatasetKey> {
 
 	const datasetKey = findDatasetKey(headers);
 	if (datasetKey === null) {
-		throw new Error(`Columns do not match any IMDb dataset: '${headers.join()}'`);
+		throw new Error(`Column headers do not match any IMDb dataset: '${headers.join(', ')}'`);
 	}
 
 	return datasetKey;

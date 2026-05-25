@@ -9,6 +9,7 @@ import { App } from './App.tsx';
 import { AppProvider } from './main/app/context/AppProvider.tsx';
 import { AppRoutes } from './main/app/route/AppRoutes.tsx';
 import { AppTheme } from './main/app/theme/AppTheme.tsx';
+import { NotifyProvider } from './main/notify/context/NotifyProvider.tsx';
 import { StorageProvider } from './main/storage/context/StorageProvider.tsx';
 import { UploadProvider } from './main/upload/context/UploadProvider.tsx';
 
@@ -18,17 +19,19 @@ if (rootElement === null) throw new Error('Failed to find root element');
 createRoot(rootElement).render(
 	<StrictMode>
 		<BrowserRouter>
-			<StorageProvider>
-				<UploadProvider>
-					<AppProvider>
-						<AppTheme>
-							<AppRoutes>
-								<App />
-							</AppRoutes>
-						</AppTheme>
-					</AppProvider>
-				</UploadProvider>
-			</StorageProvider>
+			<NotifyProvider>
+				<StorageProvider>
+					<UploadProvider>
+						<AppProvider>
+							<AppTheme>
+								<AppRoutes>
+									<App />
+								</AppRoutes>
+							</AppTheme>
+						</AppProvider>
+					</UploadProvider>
+				</StorageProvider>
+			</NotifyProvider>
 		</BrowserRouter>
 	</StrictMode>
 );

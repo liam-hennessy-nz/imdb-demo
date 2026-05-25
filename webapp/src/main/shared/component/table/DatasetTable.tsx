@@ -6,45 +6,94 @@ import {
 	type GridPaginationModel,
 	type GridSortModel,
 } from '@mui/x-data-grid';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DATASET_CONFIGS, type DatasetKey, type DatasetMap } from '../../../dataset/entity/Datasets.ts';
+import { useNotifyContext } from '../../../notify/context/NotifyContext.ts';
 import { PAGINATOR } from '../../constant/constants.ts';
-import type { PageRequestDTO } from '../../dto/PageRequestDTO.ts';
+import type { PageRequest } from '../../dto/PageRequest.ts';
 import type { PageResponseDTO } from '../../dto/PageResponseDTO.ts';
+import { isAbortError, parseErrorMessage } from '../../util/commonFunctions.ts';
 import { devLog } from '../../util/devLog.ts';
 
 interface DataTableProps<K extends DatasetKey> {
 	datasetKey: K;
-	initPage: PageResponseDTO<DatasetMap[K]>;
-	onPage: (request: PageRequestDTO) => Promise<PageResponseDTO<DatasetMap[K]>>;
+	onPage: (request: PageRequest, abortSignal?: AbortSignal) => Promise<PageResponseDTO<DatasetMap[K]>>;
 }
 
 export function DatasetTable<K extends DatasetKey>(props: DataTableProps<K>) {
-	const { datasetKey, initPage, onPage } = props;
+	const { datasetKey, onPage } = props;
 
-	const [data, setData] = useState<DatasetMap[K][]>(initPage.content);
-	const [rowCount, setRowCount] = useState<number>(initPage.page.totalElements);
-	const [loading, setLoading] = useState<boolean>(false);
+	const notifyCtx = useNotifyContext();
+
+	const [data, setData] = useState<DatasetMap[K][]>([]);
+	const [rowCount, setRowCount] = useState<number>(0);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	const [pagination, setPagination] = useState<GridPaginationModel>(PAGINATOR.INIT.PAGINATION);
 	const [sort, setSort] = useState<GridSortModel>(PAGINATOR.INIT.SORT);
 	const [filter, setFilter] = useState<GridFilterModel>(PAGINATOR.INIT.FILTER);
 
-	async function requestPage(request: PageRequestDTO) {
-		setLoading(true);
+	async function requestPage(request: PageRequest) {
+		const controller = new AbortController();
 
-		const response = await onPage(request);
-		setData(response.content);
-		setRowCount(response.page.totalElements);
-
-		setLoading(false);
+		setIsLoading(true);
+		try {
+			const response = await onPage(request, controller.signal);
+			setData(response.content);
+			setRowCount(response.page.totalElements);
+		} catch (ex) {
+			if (isAbortError(ex)) return;
+			notifyCtx.showSnackbar(`Failed to fetch data: ${parseErrorMessage(ex)}`, 'error');
+		}
+		setIsLoading(false);
 	}
+
+	function getKeys(): GridColDef[] {
+		const datasetConfig = DATASET_CONFIGS[datasetKey];
+
+		return Object.entries(datasetConfig.keys).map(([key, value]) => ({
+			field: key,
+			headerName: value.label,
+			type: value.type,
+			flex: value.flex,
+			editable: value.editable,
+		}));
+	}
+
+	useEffect(() => {
+		const controller = new AbortController();
+
+		async function initFetch() {
+			const initRequest: PageRequest = {
+				pagination: PAGINATOR.INIT.PAGINATION,
+				sort: PAGINATOR.INIT.SORT,
+				filter: PAGINATOR.INIT.FILTER,
+			};
+
+			setIsLoading(true);
+			try {
+				const response = await onPage(initRequest, controller.signal);
+				setData(response.content);
+				setRowCount(response.page.totalElements);
+			} catch (ex) {
+				if (isAbortError(ex)) return;
+				notifyCtx.showSnackbar(`Failed to fetch data: ${parseErrorMessage(ex)}`, 'error');
+			}
+			setIsLoading(false);
+		}
+
+		void initFetch();
+
+		return () => {
+			controller.abort();
+		};
+	}, [notifyCtx, onPage]);
 
 	async function handlePageChange(newPage: GridPaginationModel) {
 		setPagination(newPage);
 		devLog.debug(`Pagination changed to ${JSON.stringify(newPage)}`);
 
-		const request: PageRequestDTO = { pagination: newPage, sort, filter };
+		const request: PageRequest = { pagination: newPage, sort, filter };
 		await requestPage(request);
 	}
 
@@ -52,7 +101,7 @@ export function DatasetTable<K extends DatasetKey>(props: DataTableProps<K>) {
 		setSort(newSort);
 		devLog.debug(`Page sort changed to ${JSON.stringify(newSort)}`);
 
-		const request: PageRequestDTO = { pagination, sort: newSort, filter };
+		const request: PageRequest = { pagination, sort: newSort, filter };
 		await requestPage(request);
 	}
 
@@ -60,18 +109,8 @@ export function DatasetTable<K extends DatasetKey>(props: DataTableProps<K>) {
 		setFilter(newFilter);
 		devLog.debug(`Filter changed to ${JSON.stringify(newFilter)}`);
 
-		const request: PageRequestDTO = { pagination, sort, filter: newFilter };
+		const request: PageRequest = { pagination, sort, filter: newFilter };
 		await requestPage(request);
-	}
-
-	function getColumns(): GridColDef[] {
-		const datasetConfig = DATASET_CONFIGS[datasetKey];
-
-		return Object.entries(datasetConfig.keys).map(([key, value]) => ({
-			field: key,
-			headerName: value.label,
-			flex: value.flex,
-		}));
 	}
 
 	return (
@@ -85,11 +124,12 @@ export function DatasetTable<K extends DatasetKey>(props: DataTableProps<K>) {
 			}}
 		>
 			<DataGrid
-				columns={getColumns()}
+				columns={getKeys()}
 				rows={data}
 				rowCount={rowCount}
-				loading={loading}
+				loading={isLoading}
 				density="compact"
+				editMode="row"
 				pagination
 				pageSizeOptions={PAGINATOR.PAGE_SIZE_OPTIONS}
 				paginationModel={pagination}
