@@ -1,4 +1,4 @@
-import { DATASET_CONFIGS, type DatasetKey } from '../../dataset/entity/Datasets.ts';
+import { DATASET_CONFIGS, type DatasetKey } from '../../dataset/entity/Dataset.ts';
 import { WEBSOCKET } from '../../shared/constant/constants.ts';
 import { readFileSnippet } from '../../shared/service/fileService.ts';
 import { newErrorWrap } from '../../shared/util/commonFunctions.ts';
@@ -65,7 +65,7 @@ export function findDatasetKey(columnArray: string[]): DatasetKey | null {
 	for (const dataset of Object.keys(DATASET_CONFIGS) as DatasetKey[]) {
 		const { keys } = DATASET_CONFIGS[dataset];
 		// Get column keys from config const, sliced to ignore the first (ID) field which won't exist yet
-		const columnKeys = Object.keys(keys).slice(1);
+		const columnKeys = Object.keys(keys);
 		// Return the matching dataset key if all column keys are found in the array
 		if (columnArray.length === columnKeys.length && columnKeys.every((k) => columnArray.includes(k))) {
 			return dataset;
@@ -140,9 +140,9 @@ export function assertUploadIsVisible(upload: Upload | null): asserts upload is 
 
 export function doesUploadMatchStored(upload: Upload, storedUpload: StoredUpload): boolean {
 	return (
-		upload.file?.name === storedUpload.file.name &&
-		upload.file.size === storedUpload.file.size &&
-		upload.file.lastModified === storedUpload.file.lastModified
+		upload.file?.name === storedUpload.fileMeta.name &&
+		upload.file.size === storedUpload.fileMeta.size &&
+		upload.file.lastModified === storedUpload.fileMeta.lastModified
 	);
 }
 

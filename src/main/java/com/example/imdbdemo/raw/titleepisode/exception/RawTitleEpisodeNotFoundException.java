@@ -1,12 +1,10 @@
 package com.example.imdbdemo.raw.titleepisode.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.example.imdbdemo.shared.exception.ResourceNotFoundException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class RawTitleEpisodeNotFoundException extends RuntimeException {
+public class RawTitleEpisodeNotFoundException extends ResourceNotFoundException {
 
-	public RawTitleEpisodeNotFoundException(String message) {
-		super("RawTitleEpisode not found: %s".formatted(message));
+	public RawTitleEpisodeNotFoundException(String field, String value) {
+		super("RawTitleEpisode", field, value);
 	}
 }

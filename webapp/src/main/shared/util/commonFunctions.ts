@@ -1,4 +1,6 @@
+import type { GridFilterModel, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 import axios from 'axios';
+import { PAGINATOR } from '../constant/constants.ts';
 import type { PageRequest } from '../dto/PageRequest.ts';
 
 /**
@@ -65,6 +67,57 @@ export function formatBytes(bytes: number, decimals = 2) {
 	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
 }
 
+export function toPageRequest(searchParams: URLSearchParams): PageRequest {
+	function getPagination(): GridPaginationModel {
+		const pageParam = searchParams.get('page');
+		const pageNumber = pageParam !== null ? Number(pageParam) : null;
+		const page = pageNumber !== null && !isNaN(pageNumber) ? pageNumber : PAGINATOR.INIT.PAGINATION.page;
+
+		const sizeParam = searchParams.get('size');
+		const sizeNumber = sizeParam !== null ? Number(sizeParam) : null;
+		const pageSize = sizeNumber !== null && !isNaN(sizeNumber) ? sizeNumber : PAGINATOR.INIT.PAGINATION.pageSize;
+
+		return { page, pageSize };
+	}
+
+	function getSort(): GridSortModel {
+		function parseSortDirection(sortDirection: string | undefined) {
+			if (sortDirection !== 'asc' && sortDirection !== 'desc') return 'asc';
+			return sortDirection;
+		}
+
+		const sortParams = searchParams.getAll('sort');
+
+		return sortParams.length > 0
+			? sortParams.map((sort) => {
+					const [field, sortDirection] = sort.split(',');
+					return { field: field ?? '', sort: parseSortDirection(sortDirection) };
+				})
+			: PAGINATOR.INIT.SORT;
+	}
+
+	function getFilter(): GridFilterModel {
+		const filter: GridFilterModel = { items: [] };
+		let id = 0;
+		for (const [key, value] of searchParams.entries()) {
+			const match = /^(.+?)\[(.+?)]$/.exec(key);
+			if (match === null) continue;
+
+			const [_, field, operator] = match;
+			filter.items.push({
+				id: id++,
+				field: field ?? '',
+				operator: operator ?? '',
+				value: value.includes(',') ? value.split(',') : value,
+			});
+		}
+
+		return filter;
+	}
+
+	return { pagination: getPagination(), sort: getSort(), filter: getFilter() };
+}
+
 export function toUrlSearchParams(request: PageRequest) {
 	const urlSearchParams = new URLSearchParams();
 	urlSearchParams.set('page', request.pagination.page.toString());
@@ -76,14 +129,16 @@ export function toUrlSearchParams(request: PageRequest) {
 	}
 
 	for (const filter of request.filter.items) {
-		if (
-			filter.operator !== 'isEmpty' &&
-			filter.operator !== 'isNotEmpty' &&
-			(filter.value === undefined || filter.value === null)
-		) {
+		let value: string;
+		if (filter.operator === 'isEmpty' || filter.operator === 'isNotEmpty') {
+			value = 'true';
+		} else if (filter.value === undefined || filter.value === null) {
 			continue;
+		} else {
+			value = String(filter.value);
 		}
-		urlSearchParams.append(`${filter.field}[${filter.operator}]`, String(filter.value));
+
+		urlSearchParams.append(`${filter.field}[${filter.operator}]`, value);
 	}
 
 	return urlSearchParams;

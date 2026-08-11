@@ -1,10 +1,10 @@
 import CancelIcon from '@mui/icons-material/Cancel';
-import { Tooltip } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
+import type { DatasetKey } from '../../dataset/entity/Dataset.ts';
 import { formatBytes } from '../../shared/util/commonFunctions.ts';
 import { useStorageContext } from '../../storage/context/StorageContext.ts';
 import { useUploadContext } from '../context/UploadContext.ts';

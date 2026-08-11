@@ -1,12 +1,10 @@
 package com.example.imdbdemo.raw.titleaka.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.example.imdbdemo.shared.exception.ResourceNotFoundException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class RawTitleAkaNotFoundException extends RuntimeException {
+public class RawTitleAkaNotFoundException extends ResourceNotFoundException {
 
-	public RawTitleAkaNotFoundException(String message) {
-		super("RawTitleAka not found: %s".formatted(message));
+	public RawTitleAkaNotFoundException(String field, String value) {
+		super("RawTitleAka", field, value);
 	}
 }

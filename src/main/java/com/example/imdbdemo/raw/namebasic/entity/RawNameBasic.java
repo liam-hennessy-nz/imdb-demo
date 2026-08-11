@@ -3,14 +3,14 @@ package com.example.imdbdemo.raw.namebasic.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Data
 @Entity
-@Table(name = "imdb_name_basics")
+@Table
+@Data
 public class RawNameBasic {
 
 	@Id
-	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column
 	private Long id;
 
 	@Column

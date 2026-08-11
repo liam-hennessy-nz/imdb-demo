@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RawTitleEpisodeDTO {
 
-	private Long id;
 	private String tconst;
 	private String parentTconst;
 	private String seasonNumber;

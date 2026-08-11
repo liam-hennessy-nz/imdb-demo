@@ -3,7 +3,7 @@ import { RawTitleRatingTable } from './RawTitleRatingTable.tsx';
 
 export function RawTitleRatingPage() {
 	return (
-		<Box sx={{ display: 'flex', flex: 1 }}>
+		<Box sx={{ flex: 1, display: 'flex' }}>
 			<RawTitleRatingTable />
 		</Box>
 	);

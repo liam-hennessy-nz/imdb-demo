@@ -15,7 +15,7 @@ export function readFileSnippet(
 		const text = reader.result as string;
 
 		const firstLine = text.split(/\r?\n/)[0];
-		const headers = firstLine.split('\t');
+		const headers = firstLine?.split('\t') ?? [];
 		resolve(headers);
 	};
 

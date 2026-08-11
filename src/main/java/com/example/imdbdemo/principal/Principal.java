@@ -1,37 +1,37 @@
 package com.example.imdbdemo.principal;
 
-import com.example.imdbdemo.category.Category;
-import com.example.imdbdemo.name.Name;
-import com.example.imdbdemo.title.Title;
+import com.example.imdbdemo.character.entity.Character;
+import com.example.imdbdemo.person.entity.Person;
+import com.example.imdbdemo.profession.entity.Profession;
+import com.example.imdbdemo.title.entity.Title;
 import jakarta.persistence.*;
 import java.util.Set;
 import lombok.Data;
 
-@Data
 @Entity
-@Table(name = "principals")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "title_id", "ordering" }))
+@Data
 public class Principal {
 
 	@Id
-	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column
-	private int ordering;
+	@OneToOne
+	private Profession profession;
 
-	@ManyToOne
-	private Name name;
+	@ManyToOne(optional = false)
+	private Person person;
 
-	@ManyToMany(mappedBy = "principals")
-	private Set<Category> categories;
-
-	@Column
-	private String job;
-
-	@Column
-	private String characters;
+	@ManyToOne(optional = false)
+	private Title title;
 
 	@OneToMany(mappedBy = "principal")
-	private Set<Title> titles;
+	private Set<Character> character;
+
+	@Column
+	private Short ordering;
+
+	@Column
+	private String notes;
 }

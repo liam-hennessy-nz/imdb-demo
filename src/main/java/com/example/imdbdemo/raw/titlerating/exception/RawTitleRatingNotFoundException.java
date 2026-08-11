@@ -1,12 +1,10 @@
 package com.example.imdbdemo.raw.titlerating.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.example.imdbdemo.shared.exception.ResourceNotFoundException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class RawTitleRatingNotFoundException extends RuntimeException {
+public class RawTitleRatingNotFoundException extends ResourceNotFoundException {
 
-	public RawTitleRatingNotFoundException(String message) {
-		super("RawTitleRating not found: %s".formatted(message));
+	public RawTitleRatingNotFoundException(String field, String value) {
+		super("RawTitleRating", field, value);
 	}
 }

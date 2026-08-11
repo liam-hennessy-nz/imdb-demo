@@ -1,12 +1,10 @@
 package com.example.imdbdemo.raw.namebasic.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.example.imdbdemo.shared.exception.ResourceNotFoundException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class RawNameBasicNotFoundException extends RuntimeException {
+public class RawNameBasicNotFoundException extends ResourceNotFoundException {
 
-	public RawNameBasicNotFoundException(String message) {
-		super("RawNameBasic not found: %s".formatted(message));
+	public RawNameBasicNotFoundException(String field, String value) {
+		super("RawNameBasic", field, value);
 	}
 }

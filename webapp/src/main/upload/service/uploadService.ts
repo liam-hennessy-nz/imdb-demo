@@ -1,10 +1,11 @@
-import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
-import { STORAGE, WEBSOCKET } from '../../shared/constant/constants.ts';
+import type { DatasetKey } from '../../dataset/entity/Dataset.ts';
+import { WEBSOCKET } from '../../shared/constant/constants.ts';
 import { ENDPOINT } from '../../shared/constant/endpoint.ts';
 import { UPLOAD_ERROR } from '../../shared/entity/UploadError.ts';
 import { newErrorWrap, parseErrorMessage, sleep, waitForCondition } from '../../shared/util/commonFunctions.ts';
 import { devLog } from '../../shared/util/devLog.ts';
 import { initWebSocket } from '../../shared/util/initWebSocket.ts';
+import { STORAGE } from '../../storage/constant/storageConstants.ts';
 import type { StorageContextState } from '../../storage/context/StorageProvider.tsx';
 import type { UploadContextState } from '../context/UploadProvider.tsx';
 import type { AckMessageDTO } from '../dto/message/incoming/AckMessageDTO.ts';
@@ -14,7 +15,6 @@ import type { EofMessageDTO } from '../dto/message/outgoing/EofMessageDTO.ts';
 import type { MetadataMessageDTO } from '../dto/message/outgoing/MetadataMessageDTO.ts';
 import type { ResumeMessageDTO } from '../dto/message/outgoing/ResumeMessageDTO.ts';
 import type { Upload } from '../entity/Upload.ts';
-import type { StoredUploadRecord } from '../entity/UploadRecord.ts';
 import {
 	assertUploadHasConfig,
 	assertUploadHasFile,
@@ -108,7 +108,7 @@ export function uploadService(props: UploadDatasetProps): UploadDatasetState {
 		uploadCtx.dispatch({ type: 'STATUS_UPDATED', datasetKey: datasetKey, status: 'verifying' });
 
 		// Attempt to find partial upload in StorageContext
-		const storedUpload = (storageCtx.find(STORAGE.KEYS.DATASET_UPLOADS) as StoredUploadRecord)?.[datasetKey];
+		const storedUpload = storageCtx.find(STORAGE.KEYS.DATASET_UPLOADS)?.[datasetKey];
 		// Clear existing config from context, will wait for fresh config from backend
 		uploadCtx.dispatch({ type: 'CONFIG_REMOVED', datasetKey: datasetKey });
 

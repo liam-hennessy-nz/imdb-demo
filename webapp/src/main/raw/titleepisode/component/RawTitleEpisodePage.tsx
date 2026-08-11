@@ -3,7 +3,7 @@ import { RawTitleEpisodeTable } from './RawTitleEpisodeTable.tsx';
 
 export function RawTitleEpisodePage() {
 	return (
-		<Box sx={{ display: 'flex', flex: 1 }}>
+		<Box sx={{ flex: 1, display: 'flex' }}>
 			<RawTitleEpisodeTable />
 		</Box>
 	);

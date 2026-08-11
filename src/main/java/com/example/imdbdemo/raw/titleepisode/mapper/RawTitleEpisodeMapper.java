@@ -2,7 +2,6 @@ package com.example.imdbdemo.raw.titleepisode.mapper;
 
 import com.example.imdbdemo.raw.titleepisode.dto.RawTitleEpisodeDTO;
 import com.example.imdbdemo.raw.titleepisode.entity.RawTitleEpisode;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -23,18 +22,10 @@ public class RawTitleEpisodeMapper {
 	}
 
 	public List<RawTitleEpisode> mapToEntityList(List<RawTitleEpisodeDTO> rawTitleEpisodeDTOList) {
-		List<RawTitleEpisode> rawTitleEpisodeList = new ArrayList<>();
-		for (RawTitleEpisodeDTO rawTitleEpisodeDTO : rawTitleEpisodeDTOList) {
-			rawTitleEpisodeList.add(mapToEntity(rawTitleEpisodeDTO));
-		}
-		return rawTitleEpisodeList;
+		return rawTitleEpisodeDTOList.stream().map(this::mapToEntity).toList();
 	}
 
 	public List<RawTitleEpisodeDTO> mapToDtoList(List<RawTitleEpisode> rawTitleEpisodeList) {
-		List<RawTitleEpisodeDTO> rawTitleEpisodeDTOList = new ArrayList<>();
-		for (RawTitleEpisode rawTitleEpisode : rawTitleEpisodeList) {
-			rawTitleEpisodeDTOList.add(mapToDto(rawTitleEpisode));
-		}
-		return rawTitleEpisodeDTOList;
+		return rawTitleEpisodeList.stream().map(this::mapToDto).toList();
 	}
 }

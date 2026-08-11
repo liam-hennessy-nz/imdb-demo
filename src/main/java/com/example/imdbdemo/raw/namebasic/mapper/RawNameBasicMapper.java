@@ -2,7 +2,6 @@ package com.example.imdbdemo.raw.namebasic.mapper;
 
 import com.example.imdbdemo.raw.namebasic.dto.RawNameBasicDTO;
 import com.example.imdbdemo.raw.namebasic.entity.RawNameBasic;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -23,18 +22,10 @@ public class RawNameBasicMapper {
 	}
 
 	public List<RawNameBasic> mapToEntityList(List<RawNameBasicDTO> rawNameBasicDTOList) {
-		List<RawNameBasic> rawNameBasicList = new ArrayList<>();
-		for (RawNameBasicDTO rawNameBasicDTO : rawNameBasicDTOList) {
-			rawNameBasicList.add(mapToEntity(rawNameBasicDTO));
-		}
-		return rawNameBasicList;
+		return rawNameBasicDTOList.stream().map(this::mapToEntity).toList();
 	}
 
 	public List<RawNameBasicDTO> mapToDtoList(List<RawNameBasic> rawNameBasicList) {
-		List<RawNameBasicDTO> rawNameBasicDTOList = new ArrayList<>();
-		for (RawNameBasic rawNameBasic : rawNameBasicList) {
-			rawNameBasicDTOList.add(mapToDto(rawNameBasic));
-		}
-		return rawNameBasicDTOList;
+		return rawNameBasicList.stream().map(this::mapToDto).toList();
 	}
 }

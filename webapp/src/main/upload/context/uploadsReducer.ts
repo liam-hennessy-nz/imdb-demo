@@ -1,4 +1,4 @@
-import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
+import type { DatasetKey } from '../../dataset/entity/Dataset.ts';
 import type { ConfigMessageDTO } from '../dto/message/incoming/ConfigMessageDTO.ts';
 import type { Upload } from '../entity/Upload.ts';
 import type { UploadRecord } from '../entity/UploadRecord.ts';

@@ -1,102 +1,65 @@
 package com.example.imdbdemo.raw.titleepisode.service;
 
 import static com.example.imdbdemo.shared.PageHelper.*;
+import static com.example.imdbdemo.shared.constant.Constants.RAW_TITLE_EPISODE;
 
 import com.example.imdbdemo.raw.titleepisode.dto.RawTitleEpisodeDTO;
-import com.example.imdbdemo.raw.titleepisode.entity.QRawTitleEpisode;
 import com.example.imdbdemo.raw.titleepisode.entity.RawTitleEpisode;
 import com.example.imdbdemo.raw.titleepisode.exception.RawTitleEpisodeNotFoundException;
 import com.example.imdbdemo.raw.titleepisode.mapper.RawTitleEpisodeMapper;
-import com.example.imdbdemo.raw.titleepisode.repository.RawTitleEpisodeRepository;
-import com.example.imdbdemo.shared.exception.IllegalFilterFieldException;
-import com.querydsl.core.BooleanBuilder;
+import com.example.imdbdemo.raw.titleepisode.repository.RawTitleEpisodeJpaRepository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 @Service
 @RequiredArgsConstructor
 public class RawTitleEpisodeService {
 
 	private final JPAQueryFactory queryFactory;
-	private final RawTitleEpisodeRepository rawTitleEpisodeRepository;
+	private final RawTitleEpisodeJpaRepository rawTitleEpisodeJpaRepository;
 	private final RawTitleEpisodeMapper rawTitleEpisodeMapper;
 
-	private static final QRawTitleEpisode TITLE_EPISODE = QRawTitleEpisode.rawTitleEpisode;
+	public Page<RawTitleEpisodeDTO> search(@NonNull Pageable pageable, @NonNull MultiValueMap<String, String> params) {
+		// Extract parameters
+		Predicate predicate = RawTitleEpisodeHelper.toPredicate(params);
+		OrderSpecifier<?>[] orderSpecifiers = toOrderSpecifiers(pageable, RAW_TITLE_EPISODE);
 
-	private static Predicate toPredicate(Map<String, String> params) {
-		List<ParsedFilter> filters = parseFilters(params);
+		// Get results and result count for page
+		List<RawTitleEpisode> rawTitleEpisodeList = selectAll(
+			queryFactory,
+			RAW_TITLE_EPISODE,
+			predicate,
+			orderSpecifiers,
+			pageable
+		);
+		long total = countAll(queryFactory, RAW_TITLE_EPISODE, predicate);
 
-		BooleanBuilder booleanBuilder = new BooleanBuilder();
-		for (ParsedFilter filter : filters) {
-			String field = filter.field();
-			String operator = filter.operator();
-			String value = filter.value();
+		List<RawTitleEpisodeDTO> content = rawTitleEpisodeMapper.mapToDtoList(rawTitleEpisodeList);
 
-			switch (field) {
-				case "id" -> applyNumberOperator(booleanBuilder, TITLE_EPISODE.id, operator, value, Long::parseLong);
-				case "tconst" -> applyStringOperator(booleanBuilder, TITLE_EPISODE.tconst, operator, value);
-				case "parentTconst" -> applyStringOperator(booleanBuilder, TITLE_EPISODE.parentTconst, operator, value);
-				case "seasonNumber" -> applyStringOperator(booleanBuilder, TITLE_EPISODE.seasonNumber, operator, value);
-				case "episodeNumber" -> applyStringOperator(booleanBuilder, TITLE_EPISODE.episodeNumber, operator, value);
-				default -> throw new IllegalFilterFieldException(field);
-			}
-		}
-
-		return booleanBuilder.getValue();
+		return new PageImpl<>(content, pageable, total);
 	}
 
-	private Page<RawTitleEpisodeDTO> search(Predicate predicate, OrderSpecifier<?>[] orderSpecifiers, Pageable pageable) {
-		List<RawTitleEpisodeDTO> results = queryFactory
-			.select(
-				Projections.constructor(
-					RawTitleEpisodeDTO.class,
-					TITLE_EPISODE.id,
-					TITLE_EPISODE.tconst,
-					TITLE_EPISODE.parentTconst,
-					TITLE_EPISODE.seasonNumber,
-					TITLE_EPISODE.episodeNumber
-				)
-			)
-			.from(TITLE_EPISODE)
-			.where(predicate)
-			.orderBy(orderSpecifiers)
-			.offset(pageable.getOffset())
-			.limit(pageable.getPageSize())
-			.fetch();
-
-		Long total = queryFactory.select(TITLE_EPISODE.count()).from(TITLE_EPISODE).where(predicate).fetchOne();
-
-		return new PageImpl<>(results, pageable, total == null ? 0 : total);
-	}
-
-	public Page<RawTitleEpisodeDTO> findAll(Pageable pageable, Map<String, String> params) {
-		Predicate predicate = toPredicate(params);
-		OrderSpecifier<?>[] orderSpecifiers = toOrderSpecifiers(pageable, TITLE_EPISODE);
-
-		return search(predicate, orderSpecifiers, pageable);
-	}
-
-	public RawTitleEpisodeDTO findById(Long id) {
-		Optional<RawTitleEpisode> rawTitleEpisode = rawTitleEpisodeRepository.findById(id);
+	public RawTitleEpisodeDTO findById(@NonNull Long id) {
+		Optional<RawTitleEpisode> rawTitleEpisode = rawTitleEpisodeJpaRepository.findById(id);
 		return rawTitleEpisode
 			.map(rawTitleEpisodeMapper::mapToDto)
-			.orElseThrow(() -> new RawTitleEpisodeNotFoundException("id = %s".formatted(id)));
+			.orElseThrow(() -> new RawTitleEpisodeNotFoundException("id", String.valueOf(id)));
 	}
 
-	public RawTitleEpisodeDTO findByTconst(String tconst) {
-		Optional<RawTitleEpisode> rawTitleEpisode = rawTitleEpisodeRepository.findByTconst(tconst);
+	public RawTitleEpisodeDTO findByTconst(@NonNull String tconst) {
+		Optional<RawTitleEpisode> rawTitleEpisode = rawTitleEpisodeJpaRepository.findByTconst(tconst);
 		return rawTitleEpisode
 			.map(rawTitleEpisodeMapper::mapToDto)
-			.orElseThrow(() -> new RawTitleEpisodeNotFoundException("tconst = %s".formatted(tconst)));
+			.orElseThrow(() -> new RawTitleEpisodeNotFoundException("tconst", tconst));
 	}
 }

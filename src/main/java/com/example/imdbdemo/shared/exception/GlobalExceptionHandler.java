@@ -1,6 +1,5 @@
 package com.example.imdbdemo.shared.exception;
 
-import com.example.imdbdemo.title.TitleNotFoundException;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(TitleNotFoundException.class)
-	public ResponseEntity<@NonNull String> handleTitleNotFoundException(TitleNotFoundException ex) {
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<String> handleResourceNotFoundException(@NonNull ResourceNotFoundException ex) {
 		return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 	}
 }

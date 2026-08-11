@@ -3,7 +3,7 @@ import { RawTitleBasicTable } from './RawTitleBasicTable.tsx';
 
 export function RawTitleBasicPage() {
 	return (
-		<Box sx={{ display: 'flex', flex: 1 }}>
+		<Box sx={{ flex: 1, display: 'flex' }}>
 			<RawTitleBasicTable />
 		</Box>
 	);

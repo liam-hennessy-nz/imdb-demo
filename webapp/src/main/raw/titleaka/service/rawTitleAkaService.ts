@@ -7,18 +7,18 @@ import type { RawTitleAka } from '../entity/RawTitleAka.ts';
 
 const basePath = `${ENDPOINT.API}/raw/title_aka`;
 
-export async function getRawTitleAkaPage(request: PageRequest, abortSignal?: AbortSignal) {
+export async function getRawTitleAkaPage(request: PageRequest, abortSignal: AbortSignal) {
 	const url = new URL(basePath);
 	url.search = toUrlSearchParams(request).toString();
 	return await GET<PageResponseDTO<RawTitleAka>>(url, abortSignal);
 }
 
-export async function getRawTitleAkaById(id: number, abortSignal?: AbortSignal) {
+export async function getRawTitleAkaById(id: number, abortSignal: AbortSignal) {
 	const url = new URL(`${basePath}/${id}`);
 	return await GET<RawTitleAka>(url, abortSignal);
 }
 
-export async function getRawTitleAkaByTconst(tconst: string, abortSignal?: AbortSignal) {
+export async function getRawTitleAkaByTconst(tconst: string, abortSignal: AbortSignal) {
 	const url = new URL(`${basePath}/tconst/${tconst}`);
 	return await GET<RawTitleAka>(url, abortSignal);
 }

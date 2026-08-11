@@ -1,6 +1,5 @@
-import { Alert, type SnackbarCloseReason } from '@mui/material';
-import type { AlertColor } from '@mui/material/Alert';
-import Snackbar from '@mui/material/Snackbar';
+import Alert, { type AlertColor } from '@mui/material/Alert';
+import Snackbar, { type SnackbarCloseReason } from '@mui/material/Snackbar';
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren, type SyntheticEvent } from 'react';
 import { NotifyContext } from './NotifyContext.ts';
 
@@ -22,7 +21,7 @@ export function NotifyProvider({ children }: PropsWithChildren) {
 	useEffect(() => {
 		function handleQueueUpdate() {
 			if (current === null && queue.length > 0) {
-				setCurrent(queue[0]);
+				setCurrent(queue[0] ?? null);
 				setQueue((prev) => prev.slice(1));
 			}
 		}

@@ -2,23 +2,26 @@ package com.example.imdbdemo.raw.titlebasic.controller;
 
 import com.example.imdbdemo.raw.titlebasic.dto.RawTitleBasicDTO;
 import com.example.imdbdemo.raw.titlebasic.service.RawTitleBasicService;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/raw/title_basic")
+@RequiredArgsConstructor
 public class RawTitleBasicController {
 
 	private final RawTitleBasicService rawTitleBasicService;
 
 	@GetMapping
-	public ResponseEntity<Page<RawTitleBasicDTO>> findAll(Pageable pageable, @RequestParam Map<String, String> params) {
-		return ResponseEntity.ok(rawTitleBasicService.findAll(pageable, params));
+	public ResponseEntity<Page<RawTitleBasicDTO>> search(
+		Pageable pageable,
+		@RequestParam MultiValueMap<String, String> params
+	) {
+		return ResponseEntity.ok(rawTitleBasicService.search(pageable, params));
 	}
 
 	@GetMapping("/{id}")

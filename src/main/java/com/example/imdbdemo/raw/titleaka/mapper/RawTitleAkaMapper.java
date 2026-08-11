@@ -2,7 +2,6 @@ package com.example.imdbdemo.raw.titleaka.mapper;
 
 import com.example.imdbdemo.raw.titleaka.dto.RawTitleAkaDTO;
 import com.example.imdbdemo.raw.titleaka.entity.RawTitleAka;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -23,18 +22,10 @@ public class RawTitleAkaMapper {
 	}
 
 	public List<RawTitleAka> mapToEntityList(List<RawTitleAkaDTO> rawTitleAkaDTOList) {
-		List<RawTitleAka> rawTitleAkaList = new ArrayList<>();
-		for (RawTitleAkaDTO rawTitleAkaDTO : rawTitleAkaDTOList) {
-			rawTitleAkaList.add(mapToEntity(rawTitleAkaDTO));
-		}
-		return rawTitleAkaList;
+		return rawTitleAkaDTOList.stream().map(this::mapToEntity).toList();
 	}
 
 	public List<RawTitleAkaDTO> mapToDtoList(List<RawTitleAka> rawTitleAkaList) {
-		List<RawTitleAkaDTO> rawTitleAkaDTOList = new ArrayList<>();
-		for (RawTitleAka rawTitleAka : rawTitleAkaList) {
-			rawTitleAkaDTOList.add(mapToDto(rawTitleAka));
-		}
-		return rawTitleAkaDTOList;
+		return rawTitleAkaList.stream().map(this::mapToDto).toList();
 	}
 }

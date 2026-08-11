@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
-import { STORAGE } from '../../shared/constant/constants.ts';
+import { STORAGE } from '../../storage/constant/storageConstants.ts';
 import { useStorageContext } from '../../storage/context/StorageContext.ts';
 import { AppContext } from './AppContext.ts';
 
@@ -20,7 +20,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 
 	const [isDarkModeEnabled, setIsDarkModeEnabled] = useState<boolean>(() => {
 		const defaultVal = matchMedia('(prefers-color-scheme: dark)').matches;
-		const initVal = (storage.find(STORAGE.KEYS.IS_DARK_MODE_ENABLED) as boolean | string | null) ?? defaultVal;
+		const initVal = storage.find(STORAGE.KEYS.IS_DARK_MODE_ENABLED, { doPreferSearchParam: true }) ?? defaultVal;
 		return initVal === true || initVal === 'true';
 	});
 	const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState<boolean>(false);

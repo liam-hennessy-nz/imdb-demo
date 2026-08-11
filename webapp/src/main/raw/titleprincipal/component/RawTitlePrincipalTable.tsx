@@ -1,11 +1,16 @@
 import Box from '@mui/material/Box';
-import { DatasetTable } from '../../../shared/component/table/DatasetTable.tsx';
+import { CustomTable } from '../../../shared/component/table/CustomTable.tsx';
+import type { PageRequest } from '../../../shared/dto/PageRequest.ts';
 import { getRawTitlePrincipalPage } from '../service/rawTitlePrincipalService.ts';
 
 export function RawTitlePrincipalTable() {
+	async function handlePage(request: PageRequest, abortSignal: AbortSignal) {
+		return await getRawTitlePrincipalPage(request, abortSignal);
+	}
+
 	return (
-		<Box sx={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-			<DatasetTable datasetKey="rawTitlePrincipal" onPage={getRawTitlePrincipalPage} />
+		<Box sx={{ flex: 1, display: 'flex', minWidth: 0, minHeight: 0 }}>
+			<CustomTable datasetKey="rawTitlePrincipal" onPage={handlePage} getRowId={(row) => row.tconst} />
 		</Box>
 	);
 }

@@ -1,26 +1,24 @@
 package com.example.imdbdemo.rating;
 
-import com.example.imdbdemo.title.Title;
+import com.example.imdbdemo.title.entity.Title;
 import jakarta.persistence.*;
-import java.util.Set;
 import lombok.Data;
 
-@Data
 @Entity
-@Table(name = "ratings")
+@Table
+@Data
 public class Rating {
 
 	@Id
-	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column
-	private Double averageRating;
+	@OneToOne(optional = false)
+	private Title title;
 
 	@Column
-	private int numVotes;
+	private Short average;
 
-	@ManyToMany
-	private Set<Title> titles;
+	@Column
+	private Integer count;
 }

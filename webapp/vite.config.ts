@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
 			strictPort: true,
 			https: useTls
 				? {
-						key: fs.readFileSync(path.resolve(__dirname, tlsKeyPath)),
-						cert: fs.readFileSync(path.resolve(__dirname, tlsCrtPath)),
+						key: fs.readFileSync(path.resolve(import.meta.dirname, tlsKeyPath)),
+						cert: fs.readFileSync(path.resolve(import.meta.dirname, tlsCrtPath)),
 					}
 				: undefined,
 		},

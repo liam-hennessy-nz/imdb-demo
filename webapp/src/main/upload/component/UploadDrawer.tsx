@@ -4,7 +4,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import { Fragment } from 'react';
 import { useAppContext } from '../../app/context/AppContext.ts';
-import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
+import type { DatasetKey } from '../../dataset/entity/Dataset.ts';
 import { useUploadContext } from '../context/UploadContext.ts';
 import type { Upload } from '../entity/Upload.ts';
 import { assertUploadHasFile, assertUploadIsVisible } from '../service/uploadHelper.ts';

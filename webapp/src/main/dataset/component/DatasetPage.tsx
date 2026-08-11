@@ -8,7 +8,7 @@ import { parseErrorMessage } from '../../shared/util/commonFunctions.ts';
 import { useUploadContext } from '../../upload/context/UploadContext.ts';
 import type { Upload } from '../../upload/entity/Upload.ts';
 import { parseDatasetKey } from '../../upload/service/uploadHelper.ts';
-import type { DatasetKey } from '../entity/Datasets.ts';
+import type { DatasetKey } from '../entity/Dataset.ts';
 
 export function DatasetPage() {
 	const appCtx = useAppContext();
@@ -39,7 +39,7 @@ export function DatasetPage() {
 	}
 
 	return (
-		<Box sx={{ display: 'flex', flex: 1 }}>
+		<Box sx={{ flex: 1 }}>
 			<Button variant="contained" component="label" startIcon={<FileUploadIcon />}>
 				Upload
 				<input type="file" hidden onChange={(ev) => void handleUpload(ev)} />

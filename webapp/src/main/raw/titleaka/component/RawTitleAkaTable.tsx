@@ -1,11 +1,16 @@
 import Box from '@mui/material/Box';
-import { DatasetTable } from '../../../shared/component/table/DatasetTable.tsx';
+import { CustomTable } from '../../../shared/component/table/CustomTable.tsx';
+import type { PageRequest } from '../../../shared/dto/PageRequest.ts';
 import { getRawTitleAkaPage } from '../service/rawTitleAkaService.ts';
 
 export function RawTitleAkaTable() {
+	async function handlePage(request: PageRequest, abortSignal: AbortSignal) {
+		return await getRawTitleAkaPage(request, abortSignal);
+	}
+
 	return (
-		<Box sx={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-			<DatasetTable datasetKey="rawTitleAka" onPage={getRawTitleAkaPage} />
+		<Box sx={{ flex: 1, display: 'flex', minWidth: 0, minHeight: 0 }}>
+			<CustomTable datasetKey="rawTitleAka" onPage={handlePage} getRowId={(row) => row.tconst} />
 		</Box>
 	);
 }

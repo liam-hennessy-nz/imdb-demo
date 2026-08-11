@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, type Dispatch, type PropsWithChildren } from 'react';
-import type { DatasetKey } from '../../dataset/entity/Datasets.ts';
-import { STORAGE } from '../../shared/constant/constants.ts';
+import type { DatasetKey } from '../../dataset/entity/Dataset.ts';
 import { useLatest } from '../../shared/util/useLatest.ts';
+import { STORAGE } from '../../storage/constant/storageConstants.ts';
 import { useStorageContext } from '../../storage/context/StorageContext.ts';
 import type { Upload } from '../entity/Upload.ts';
 import type { UploadRecord } from '../entity/UploadRecord.ts';
@@ -23,10 +23,7 @@ export interface UploadContextState {
 export function UploadProvider({ children }: PropsWithChildren) {
 	const storageCtx = useStorageContext();
 
-	const [uploads, dispatch] = useReducer(
-		uploadsReducer,
-		(storageCtx.find(STORAGE.KEYS.DATASET_UPLOADS) as UploadRecord | null) ?? {}
-	);
+	const [uploads, dispatch] = useReducer(uploadsReducer, storageCtx.find(STORAGE.KEYS.DATASET_UPLOADS) ?? {});
 
 	const uploadsRef = useLatest(uploads);
 

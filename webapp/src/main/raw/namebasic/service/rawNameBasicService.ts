@@ -7,18 +7,18 @@ import type { RawNameBasic } from '../entity/RawNameBasic.ts';
 
 const basePath = `${ENDPOINT.API}/raw/name_basic`;
 
-export async function getRawNameBasicPage(request: PageRequest, abortSignal?: AbortSignal) {
+export async function getRawNameBasicPage(request: PageRequest, abortSignal: AbortSignal) {
 	const url = new URL(basePath);
 	url.search = toUrlSearchParams(request).toString();
 	return await GET<PageResponseDTO<RawNameBasic>>(url, abortSignal);
 }
 
-export async function getRawNameBasicById(id: number, abortSignal?: AbortSignal) {
+export async function getRawNameBasicById(id: number, abortSignal: AbortSignal) {
 	const url = new URL(`${basePath}/${id}`);
 	return await GET<RawNameBasic>(url, abortSignal);
 }
 
-export async function getRawNameBasicByNconst(nconst: string, abortSignal?: AbortSignal) {
+export async function getRawNameBasicByNconst(nconst: string, abortSignal: AbortSignal) {
 	const url = new URL(`${basePath}/nconst/${nconst}`);
 	return await GET<RawNameBasic>(url, abortSignal);
 }

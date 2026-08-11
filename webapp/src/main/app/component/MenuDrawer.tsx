@@ -7,7 +7,7 @@ import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
 import PersonIcon from '@mui/icons-material/Person';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import RawOnIcon from '@mui/icons-material/RawOn';
-import { Collapse } from '@mui/material';
+import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -41,14 +41,42 @@ export function MenuDrawer() {
 					<ListItemText primary="Home" />
 				</ListItemButton>
 
-				<ListItemButton component={Link} to="/raw/name_basic" onClick={handleDrawerClose}>
+				<ListItemButton component={Link} to="/alias" onClick={handleDrawerClose}>
+					<ListItemIcon>
+						<LocalMoviesIcon />
+					</ListItemIcon>
+					<ListItemText primary="Aliases" />
+				</ListItemButton>
+
+				<ListItemButton component={Link} to="/character" onClick={handleDrawerClose}>
+					<ListItemIcon>
+						<LocalMoviesIcon />
+					</ListItemIcon>
+					<ListItemText primary="Characters" />
+				</ListItemButton>
+
+				<ListItemButton component={Link} to="/genre" onClick={handleDrawerClose}>
+					<ListItemIcon>
+						<LocalMoviesIcon />
+					</ListItemIcon>
+					<ListItemText primary="Genres" />
+				</ListItemButton>
+
+				<ListItemButton component={Link} to="/person" onClick={handleDrawerClose}>
 					<ListItemIcon>
 						<PersonIcon />
 					</ListItemIcon>
-					<ListItemText primary="Names" />
+					<ListItemText primary="People" />
 				</ListItemButton>
 
-				<ListItemButton component={Link} to="/" onClick={handleDrawerClose}>
+				<ListItemButton component={Link} to="/profession" onClick={handleDrawerClose}>
+					<ListItemIcon>
+						<LocalMoviesIcon />
+					</ListItemIcon>
+					<ListItemText primary="Professions" />
+				</ListItemButton>
+
+				<ListItemButton component={Link} to="/title" onClick={handleDrawerClose}>
 					<ListItemIcon>
 						<LocalMoviesIcon />
 					</ListItemIcon>
@@ -62,68 +90,61 @@ export function MenuDrawer() {
 					<ListItemText primary="Other" />
 				</ListItemButton>
 
-				<ListItemButton component={Link} to="/datasets" onClick={handleDrawerClose}>
-					<ListItemIcon>
-						<DataArrayIcon />
-					</ListItemIcon>
-					<ListItemText primary="Datasets" />
-				</ListItemButton>
-
 				<Divider />
 
 				<ListItemButton onClick={handleToggleRawNestOpen}>
 					<ListItemIcon>
 						<RawOnIcon />
 					</ListItemIcon>
-					<ListItemText primary="Raw Datasets" />
+					<ListItemText primary="Raw Dataset" />
 					{isRawNestOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
 				</ListItemButton>
 
 				<Collapse in={isRawNestOpen} timeout="auto" unmountOnExit>
-					<List component="div" disablePadding>
-						<ListItemButton component={Link} to="/raw/name_basic" onClick={handleDrawerClose} sx={{ pl: 4 }}>
+					<List component="div" disablePadding sx={{ pl: 2 }}>
+						<ListItemButton component={Link} to="/dataset" onClick={handleDrawerClose}>
+							<ListItemIcon>
+								<DataArrayIcon />
+							</ListItemIcon>
+							<ListItemText primary="Manage" />
+						</ListItemButton>
+
+						<ListItemButton component={Link} to="/raw/name_basic" onClick={handleDrawerClose}>
 							<ListItemIcon>
 								<PersonIcon />
 							</ListItemIcon>
 							<ListItemText primary="Name Basic" />
 						</ListItemButton>
 
-						<ListItemButton component={Link} to="/raw/title_aka" onClick={handleDrawerClose} sx={{ pl: 4 }}>
+						<ListItemButton component={Link} to="/raw/title_aka" onClick={handleDrawerClose}>
 							<ListItemIcon>
 								<LocalMoviesIcon />
 							</ListItemIcon>
 							<ListItemText primary="Title Aka" />
 						</ListItemButton>
 
-						<ListItemButton component={Link} to="/raw/title_basic" onClick={handleDrawerClose} sx={{ pl: 4 }}>
+						<ListItemButton component={Link} to="/raw/title_basic" onClick={handleDrawerClose}>
 							<ListItemIcon>
 								<LocalMoviesIcon />
 							</ListItemIcon>
 							<ListItemText primary="Title Basic" />
 						</ListItemButton>
 
-						<ListItemButton component={Link} to="/raw/title_crew" onClick={handleDrawerClose} sx={{ pl: 4 }}>
-							<ListItemIcon>
-								<LocalMoviesIcon />
-							</ListItemIcon>
-							<ListItemText primary="Title Crew" />
-						</ListItemButton>
-
-						<ListItemButton component={Link} to="/raw/title_episode" onClick={handleDrawerClose} sx={{ pl: 4 }}>
+						<ListItemButton component={Link} to="/raw/title_episode" onClick={handleDrawerClose}>
 							<ListItemIcon>
 								<LocalMoviesIcon />
 							</ListItemIcon>
 							<ListItemText primary="Title Episode" />
 						</ListItemButton>
 
-						<ListItemButton component={Link} to="/raw/title_principal" onClick={handleDrawerClose} sx={{ pl: 4 }}>
+						<ListItemButton component={Link} to="/raw/title_principal" onClick={handleDrawerClose}>
 							<ListItemIcon>
 								<LocalMoviesIcon />
 							</ListItemIcon>
 							<ListItemText primary="Title Principal" />
 						</ListItemButton>
 
-						<ListItemButton component={Link} to="/raw/title_rating" onClick={handleDrawerClose} sx={{ pl: 4 }}>
+						<ListItemButton component={Link} to="/raw/title_rating" onClick={handleDrawerClose}>
 							<ListItemIcon>
 								<LocalMoviesIcon />
 							</ListItemIcon>

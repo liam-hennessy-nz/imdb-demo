@@ -1,7 +1,7 @@
 package com.example.imdbdemo.shared.config;
 
 import com.example.imdbdemo.shared.config.props.AppProps;
-import com.example.imdbdemo.websocket.upload.service.UploadHandler;
+import com.example.imdbdemo.upload.service.UploadHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;

@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RawTitleAkaDTO {
 
-	private Long id;
 	private String tconst;
 	private String ordering;
 	private String title;

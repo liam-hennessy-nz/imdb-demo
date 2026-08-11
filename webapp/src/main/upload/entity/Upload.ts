@@ -20,5 +20,5 @@ export interface Upload extends BaseUpload {
 }
 
 export interface StoredUpload extends BaseUpload {
-	file: FileMetadata;
+	fileMeta: FileMetadata;
 }

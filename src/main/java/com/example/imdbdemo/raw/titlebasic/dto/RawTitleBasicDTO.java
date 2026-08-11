@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RawTitleBasicDTO {
 
-	private Long id;
 	private String tconst;
 	private String titleType;
 	private String primaryTitle;
